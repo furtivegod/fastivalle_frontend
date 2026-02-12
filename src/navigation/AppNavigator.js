@@ -12,6 +12,7 @@ import PurchaseSuccessScreen from '../screens/main/PurchaseSuccessScreen';
 import MyTicketsScreen from '../screens/main/MyTicketsScreen';
 import OrderDetailsScreen from '../screens/main/OrderDetailsScreen';
 import EventScreen from '../screens/main/EventScreen';
+import MyScheduleLineUpScreen from '../screens/main/MyScheduleLineUpScreen';
 import ArtistListScreen from '../screens/main/ArtistListScreen';
 import ArtistDetailScreen from '../screens/main/ArtistDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -42,6 +43,7 @@ const AppNavigator = () => {
         <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
         <Stack.Screen name="GetTicket" component={GetTicketScreen} />
         <Stack.Screen name="Event" component={EventScreen} />
+        <Stack.Screen name="MyScheduleLineUp" component={MyScheduleLineUpScreen} />
         <Stack.Screen name="ArtistList" component={ArtistListScreen} />
         <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         <Stack.Screen name="MyTickets" component={MyTicketsScreen} />

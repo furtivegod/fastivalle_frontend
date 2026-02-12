@@ -19,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
   const theme = {
     colors: {
       // Primary - Vibrant Green (used in hero cards, feature sections)
-      primary: '#8BC34A',
+      primary: '#20643B',
       primaryLight: '#AED581',
       primaryDark: '#689F38',
       

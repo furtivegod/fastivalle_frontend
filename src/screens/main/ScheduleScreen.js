@@ -85,6 +85,15 @@ const GET_TICKETS_EVENT = {
 
 const SCHEDULE_STAGES = ['Main Stage', 'Garden', 'Orange Stage', 'Stage 4'];
 
+const FILTER_MUSIC_TYPES = ['Pop', 'Rap', 'R&B', 'CCM', 'Folk', 'Metal', 'EDM', 'Country', 'DJ'];
+const FILTER_STAGES = ['Main Stage', 'Garden', 'Green Stage', 'Orange Stage', 'Small Room'];
+const FILTER_ACCESSIBILITY = [
+  { key: 'wheelchair', label: 'Wheelchair Accessible', icon: 'accessibility-outline' },
+  { key: 'captioning', label: 'Captioning', icon: 'closed-captioning-outline' },
+  { key: 'hearing', label: 'Hearing Assistance', icon: 'ear-outline' },
+  { key: 'animals', label: 'Animals Allowed', icon: 'paw-outline' },
+];
+
 const SCHEDULE_SLOTS = [
   { time: '10:00', items: [{ stage: 'R&B MAINSTAGE', artist: 'tauren wells', added: true }] },
   { time: '11:00', items: [{ stage: 'CCM GARDEN', artist: 'heart & soul', added: false }] },
@@ -100,6 +109,10 @@ const ScheduleScreen = () => {
   const [selectedScheduleEvent, setSelectedScheduleEvent] = useState(null);
   const [scheduleModalMode, setScheduleModalMode] = useState('schedule');
   const [selectedStageIndex, setSelectedStageIndex] = useState(0);
+  const [filterPanelVisible, setFilterPanelVisible] = useState(false);
+  const [filterMusic, setFilterMusic] = useState(['Pop', 'Rap']);
+  const [filterStages, setFilterStages] = useState(['Main Stage']);
+  const [filterAccessibility, setFilterAccessibility] = useState(['hearing']);
 
   const scheduleOverlayOpacity = useRef(new Animated.Value(0)).current;
   const scheduleModalSlide = useRef(new Animated.Value(400)).current;
@@ -150,6 +163,22 @@ const ScheduleScreen = () => {
     setScheduleModalVisible(false);
     setSelectedScheduleEvent(null);
     setScheduleModalMode('schedule');
+    setFilterPanelVisible(false);
+  };
+
+  const toggleFilterMusic = (item) => {
+    setFilterMusic((prev) => (prev.includes(item) ? prev.filter((x) => x !== item) : [...prev, item]));
+  };
+  const toggleFilterStage = (item) => {
+    setFilterStages((prev) => (prev.includes(item) ? prev.filter((x) => x !== item) : [...prev, item]));
+  };
+  const toggleFilterAccessibility = (key) => {
+    setFilterAccessibility((prev) => (prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]));
+  };
+  const clearAllFilters = () => {
+    setFilterMusic([]);
+    setFilterStages([]);
+    setFilterAccessibility([]);
   };
 
   const months = Object.keys(EVENTS_BY_MONTH);
@@ -416,6 +445,69 @@ const ScheduleScreen = () => {
           >
             <View style={styles.scheduleModalHandle} />
 
+            {filterPanelVisible ? (
+              /* Filter panel (inside schedule modal to avoid stacking two modals) */
+              <>
+                <View style={styles.filterModalHeader}>
+                  <Text style={styles.filterModalTitle}>Filter</Text>
+                  <TouchableOpacity onPress={clearAllFilters}>
+                    <Text style={styles.filterClearAll}>Clear All</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.filterScroll} contentContainerStyle={styles.filterScrollContent} showsVerticalScrollIndicator={false}>
+                  <Text style={styles.filterSectionTitle}>Music Type</Text>
+                  <View style={styles.filterPillsWrap}>
+                    {FILTER_MUSIC_TYPES.map((item) => {
+                      const selected = filterMusic.includes(item);
+                      return (
+                        <TouchableOpacity
+                          key={item}
+                          style={[styles.filterPill, selected ? styles.filterPillSelected : styles.filterPillDefault]}
+                          onPress={() => toggleFilterMusic(item)}
+                        >
+                          <Text style={[styles.filterPillText, selected ? styles.filterPillTextSelected : styles.filterPillTextDefault]}>{item}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <Text style={styles.filterSectionTitle}>Stage</Text>
+                  <View style={styles.filterPillsWrap}>
+                    {FILTER_STAGES.map((item) => {
+                      const selected = filterStages.includes(item);
+                      return (
+                        <TouchableOpacity
+                          key={item}
+                          style={[styles.filterPill, selected ? styles.filterPillSelected : styles.filterPillDefault]}
+                          onPress={() => toggleFilterStage(item)}
+                        >
+                          <Text style={[styles.filterPillText, selected ? styles.filterPillTextSelected : styles.filterPillTextDefault]}>{item}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <Text style={styles.filterSectionTitle}>Accessibility</Text>
+                  <View style={styles.filterPillsWrap}>
+                    {FILTER_ACCESSIBILITY.map((item) => {
+                      const selected = filterAccessibility.includes(item.key);
+                      return (
+                        <TouchableOpacity
+                          key={item.key}
+                          style={[styles.filterPill, selected ? styles.filterPillSelected : styles.filterPillDefault]}
+                          onPress={() => toggleFilterAccessibility(item.key)}
+                        >
+                          <Ionicons name={item.icon} size={18} color={selected ? '#FFF' : '#6B6B6B'} style={styles.filterPillIcon} />
+                          <Text style={[styles.filterPillText, selected ? styles.filterPillTextSelected : styles.filterPillTextDefault]}>{item.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+                <TouchableOpacity style={styles.filterShowResultsBtn} activeOpacity={0.8} onPress={() => setFilterPanelVisible(false)}>
+                  <Text style={styles.filterShowResultsText}>Show 12 Results</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
             {/* Section 1: Title area — View Schedule: thumb + title + date; Curate My LineUp: large title "Add Event to Your LineUp" */}
             {scheduleModalMode === 'lineup' ? (
               <Text style={styles.scheduleModalLargeTitle}>Add Event to Your LineUp</Text>
@@ -446,7 +538,10 @@ const ScheduleScreen = () => {
               contentContainerStyle={styles.schedulePillsContent}
               style={styles.schedulePillsScroll}
             >
-              <TouchableOpacity style={[styles.schedulePill, styles.schedulePillMenu]}>
+              <TouchableOpacity
+                style={[styles.schedulePill, styles.schedulePillMenu]}
+                onPress={() => setFilterPanelVisible(true)}
+              >
                 <Ionicons name="menu" size={20} color={theme.colors.text} />
               </TouchableOpacity>
               {SCHEDULE_STAGES.map((stage, index) => (
@@ -505,10 +600,15 @@ const ScheduleScreen = () => {
               <TouchableOpacity
                 style={styles.scheduleModalSaveBtn}
                 activeOpacity={0.8}
-                onPress={() => closeScheduleModal()}
+                onPress={() => {
+                  closeScheduleModal();
+                  navigation.navigate('MyScheduleLineUp', { event: selectedScheduleEvent });
+                }}
               >
                 <Text style={styles.scheduleModalSaveBtnText}>Save</Text>
               </TouchableOpacity>
+            )}
+              </>
             )}
           </Animated.View>
         </View>
@@ -908,7 +1008,7 @@ const styles = StyleSheet.create({
   scheduleModalSaveBtn: {
     backgroundColor: '#1a1a1a',
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
@@ -968,6 +1068,80 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Filter panel (inside schedule modal)
+  filterModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  filterModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  filterClearAll: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E87D2B',
+  },
+  filterScroll: {
+    maxHeight: 400,
+  },
+  filterScrollContent: {
+    paddingBottom: 16,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
+  },
+  filterPillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 24,
+  },
+  filterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+  },
+  filterPillDefault: {
+    backgroundColor: '#E8E6E3',
+  },
+  filterPillSelected: {
+    backgroundColor: '#1a1a1a',
+  },
+  filterPillIcon: {
+    marginRight: 6,
+  },
+  filterPillText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  filterPillTextDefault: {
+    color: '#6B6B6B',
+  },
+  filterPillTextSelected: {
+    color: '#FFFFFF',
+  },
+  filterShowResultsBtn: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 16,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  filterShowResultsText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 

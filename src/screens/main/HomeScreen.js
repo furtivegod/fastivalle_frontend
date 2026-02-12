@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -19,7 +20,8 @@ import { BlurView } from '@react-native-community/blur';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = 16;
-const EVENT_CARD_WIDTH = SCREEN_WIDTH * 0.75;
+const PADDING = 20;
+const UPCOMING_CARD_SIZE = SCREEN_WIDTH - PADDING * 2;
 const MERCH_CARD_WIDTH = SCREEN_WIDTH * 0.45;
 
 const HomeScreen = () => {
@@ -27,6 +29,15 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
   const isLoggedIn = !!user;
+  const [upcomingLiked, setUpcomingLiked] = useState({});
+  const [popularLiked, setPopularLiked] = useState({});
+
+  const toggleUpcomingLiked = (eventId) => {
+    setUpcomingLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
+  };
+  const togglePopularLiked = (eventId) => {
+    setPopularLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
+  };
 
   const upcomingEvents = [
     {
@@ -55,6 +66,7 @@ const HomeScreen = () => {
       title: 'wave of worship fasti...',
       price: '29 USD',
       liked: true,
+      image: require('../../../assets/images/merch1.png'),
     },
     {
       id: '2',
@@ -63,6 +75,7 @@ const HomeScreen = () => {
       title: 'black cotton t-shirt for such...',
       price: '35 USD',
       liked: false,
+      image: require('../../../assets/images/merch2.png'),
     },
   ];
 
@@ -110,7 +123,7 @@ const HomeScreen = () => {
         {isLoggedIn ? (
           <>
             <Text style={[styles.homeHeaderName, { color: theme.colors.text }]} numberOfLines={1}>
-              {user?.name || 'User'}
+              hi,{user?.name || 'User'}
             </Text>
             <View style={styles.homeHeaderRight}>
               <TouchableOpacity
@@ -152,81 +165,90 @@ const HomeScreen = () => {
       </View>
 
       {/* Section 2: Three pressable areas */}
-      <View style={[styles.section2, { backgroundColor: theme.colors.backgroundAlt }]}>
+      <View style={[styles.section2, { backgroundColor: theme.colors.background }]}>
         <TouchableOpacity
           style={[styles.quickButton, { backgroundColor: theme.colors.surface }]}
           activeOpacity={0.7}
           onPress={() => navigation.navigate('MyTickets')}
         >
-          <Ionicons name="ticket-outline" size={28} color={theme.colors.textSecondary} />
+          <Ionicons name="ticket" size={22} />
           <Text style={[styles.quickButtonText, { color: theme.colors.text }]}>tickets</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.quickButton, { backgroundColor: theme.colors.surface }]} activeOpacity={0.7}>
-          <Ionicons name="gift-outline" size={28} color={theme.colors.textSecondary} />
+          <Ionicons name="gift" size={22} />
           <Text style={[styles.quickButtonText, { color: theme.colors.text }]}>giving</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.quickButton, { backgroundColor: theme.colors.surface }]} activeOpacity={0.7}>
-          <Ionicons name="people-outline" size={28} color={theme.colors.textSecondary} />
+          <Ionicons name="people" size={22} />
           <Text style={[styles.quickButtonText, { color: theme.colors.text }]}>vallenteer</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Section 3: Upcoming Events slider */}
-      <View style={[styles.section3, { backgroundColor: theme.colors.backgroundAlt }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Upcoming Events</Text>
+      {/* Section 3: Upcoming Events — same card as Schedule "Get Tickets For More Moments" */}
+      <View style={[styles.section3, styles.getTicketsSection, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.getTicketsTitle, { color: theme.colors.text }]}>Upcoming Events</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.eventsScrollContent}
         >
-          {upcomingEvents.map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.eventCard}
-              activeOpacity={0.9}
-              onPress={() => navigation.navigate('Event', { event })}
-            >
-              <ImageBackground
-                source={require('../../../assets/images/person.png')}
-                style={StyleSheet.absoluteFill}
-                imageStyle={styles.eventCardImageStyle}
+          {upcomingEvents.map((event) => {
+            const liked = upcomingLiked[event.id] ?? false;
+            return (
+              <TouchableOpacity
+                key={event.id}
+                style={styles.getTicketsCard}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('Event', { event })}
               >
-                <View style={styles.eventCardOverlay} />
-              </ImageBackground>
-              <View style={styles.eventCardTop}>
-                <Text style={styles.eventDate}>{event.date}</Text>
-                <View style={styles.eventAttendees}>
-                  <Ionicons name="people" size={14} color="#FFF" />
-                  <Text style={styles.eventAttendeesText}>{event.attendees}</Text>
-                </View>
-              </View>
-              <Text style={styles.eventCardTitle}>{event.title}</Text>
-              <Text style={styles.eventCardSub}>{event.subtitle}</Text>
-              <Text style={styles.eventCardStage}>{event.stage}</Text>
-              <View style={styles.eventCardActions}>
-                <TouchableOpacity style={styles.eventHeart} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                  <Ionicons name="heart-outline" size={24} color="#FFF" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
-                  onPress={() => navigation.navigate('GetTicket', { event })}
+                <ImageBackground
+                  source={require('../../../assets/images/cover.png')}
+                  style={StyleSheet.absoluteFill}
+                  imageStyle={styles.getTicketsCardImageStyle}
                 >
-                  <Text style={styles.getTicketText}>Get Ticket</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
+                  <View style={styles.getTicketsCardOverlay} />
+                </ImageBackground>
+                <View style={styles.getTicketsCardTop}>
+                  <Text style={styles.getTicketsDate}>{event.date}</Text>
+                  <View style={styles.getTicketsAttendees}>
+                    <Ionicons name="people" size={14} color="#FFF" />
+                    <Text style={styles.getTicketsAttendeesText}>{event.attendees}</Text>
+                  </View>
+                </View>
+                <Text style={styles.getTicketsCardTitle}>{event.title}</Text>
+                <Text style={styles.getTicketsCardSub}>{event.subtitle}</Text>
+                <Text style={styles.getTicketsCardStage}>{event.stage}</Text>
+                <View style={styles.getTicketsCardActions}>
+                  <TouchableOpacity
+                    style={styles.getTicketsHeart}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    onPress={() => toggleUpcomingLiked(event.id)}
+                  >
+                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={24} color="#FFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
+                    onPress={() =>
+                      liked
+                        ? navigation.navigate('Schedule', { openMySchedule: true })
+                        : navigation.navigate('GetTicket', { event })
+                    }
+                  >
+                    <Text style={styles.getTicketBtnText}>
+                      {liked ? 'Curate Line Up' : 'Get Ticket'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
-        <View style={styles.sliderDots}>
-          <View style={[styles.dot, styles.dotActive]} />
-          <View style={styles.dot} />
-        </View>
       </View>
 
       {/* Section 4: Merch */}
-      <View style={[styles.section4, { backgroundColor: theme.colors.backgroundAlt }]}>
+      <View style={[styles.section4, { backgroundColor: theme.colors.background }]}>
         <View style={styles.section4Header}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Merch</Text>
+          <Text style={[styles.section4Title, { color: theme.colors.text }]}>Merch</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Merch')}>
             <Text style={[styles.seeMore, { color: theme.colors.textLink }]}>See More</Text>
           </TouchableOpacity>
@@ -236,29 +258,49 @@ const HomeScreen = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.merchScrollContent}
         >
-          {merchItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.merchCard, { backgroundColor: theme.colors.surface }]}
-              activeOpacity={0.9}
-            >
-              <View style={styles.merchCardImage}>
-                <View style={[styles.merchPlaceholder, { backgroundColor: theme.colors.borderLight }]} />
-                <View style={[styles.merchTag, { backgroundColor: item.tagColor }]}>
-                  <Text style={styles.merchTagText}>{item.tag}</Text>
-                </View>
-                <TouchableOpacity style={styles.merchHeart} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                  <Ionicons
-                    name={item.liked ? 'heart' : 'heart-outline'}
-                    size={22}
-                    color={item.liked ? theme.colors.heartActive : theme.colors.textSecondary}
+          {merchItems.map((item) => {
+            const priceParts = (item.price || '0 USD').split(/\s+/);
+            const priceNumber = priceParts[0] || '0';
+            const priceUnit = priceParts.slice(1).join(' ') || 'USD';
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.merchCard}
+                activeOpacity={0.9}
+              >
+                <View style={styles.merchCardImage}>
+                  <Image
+                    source={item.image}
+                    style={styles.merchCardImageFill}
+                    resizeMode="cover"
                   />
-                </TouchableOpacity>
-              </View>
-              <Text style={[styles.merchTitle, { color: theme.colors.text }]} numberOfLines={2}>{item.title}</Text>
-              <Text style={[styles.merchPrice, { color: theme.colors.text }]}>{item.price}</Text>
-            </TouchableOpacity>
-          ))}
+                  <View style={[styles.merchTag, { backgroundColor: item.tagColor }]}>
+                    <Text style={styles.merchTagText}>{item.tag}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.merchHeart} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                    <Ionicons
+                      name={item.liked ? 'heart' : 'heart-outline'}
+                      size={22}
+                      color={item.liked ? theme.colors.heartActive : theme.colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.merchCardFooter}>
+                  <Text
+                    style={[styles.merchTitle, { color: theme.colors.text }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.title}
+                  </Text>
+                  <View style={styles.merchPriceWrap}>
+                    <Text style={[styles.merchPriceNumber, { color: theme.colors.text }]}>{priceNumber}</Text>
+                    <Text style={[styles.merchPriceUnit, { color: theme.colors.text }]}>{priceUnit}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -285,52 +327,80 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      {/* Section 6: Festival Popular Events */}
-      <View style={[styles.section6, { backgroundColor: theme.colors.backgroundAlt }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Festival Popular Events</Text>
-        {popularEvents.map((event) => (
-          <TouchableOpacity
-            key={event.id}
-            style={[styles.popularEventCard, { backgroundColor: theme.colors.surface }]}
-            activeOpacity={0.8}
-          >
-            <Image source={require('../../../assets/images/person.png')} style={styles.popularEventImage} resizeMode="cover" />
-            <View style={styles.popularEventContent}>
-              <Text style={[styles.popularEventDate, { color: theme.colors.textSecondary }]}>{event.date}</Text>
-              <Text style={[styles.popularEventTitle, { color: theme.colors.text }]} numberOfLines={1}>{event.title}</Text>
-            </View>
-            <View style={styles.popularEventActions}>
-              <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-              <TouchableOpacity
-                style={styles.popularEventHeart}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Ionicons
-                  name={event.liked ? 'heart' : 'heart-outline'}
-                  size={22}
-                  color={event.liked ? theme.colors.heartActive : theme.colors.textSecondary}
-                />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+      {/* Section 6: Festival Popular Events — same as Next Appearance in Artist Detail */}
+      <View style={[styles.section6, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.section6Title, { color: theme.colors.text }]}>Festival Popular Events</Text>
+        {popularEvents.map((event) => {
+          const liked = popularLiked[event.id] ?? event.liked;
+          return (
+            <TouchableOpacity
+              key={event.id}
+              style={[styles.nextAppearanceCard, { backgroundColor: theme.colors.surface }]}
+              activeOpacity={0.9}
+              onPress={() =>
+                navigation.navigate('Event', {
+                  event: { id: event.id, date: event.date, title: event.title },
+                })
+              }
+            >
+              <Image
+                source={require('../../../assets/images/cover.png')}
+                style={styles.nextAppearanceImage}
+                resizeMode="cover"
+              />
+              <View style={styles.nextAppearanceRight}>
+                <View style={styles.nextAppearanceRow}>
+                  <Text style={[styles.nextAppearanceDateTime, { color: theme.colors.textSecondary }]}>
+                    {event.date}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} style={styles.forwardIcon} />
+                </View>
+                <View style={styles.nextAppearanceRow}>
+                  <Text
+                    style={[styles.nextAppearanceTitle, { color: theme.colors.text }]}
+                    numberOfLines={2}
+                  >
+                    {event.title}
+                  </Text>
+                  <TouchableOpacity
+                    hitSlop={12}
+                    style={styles.likedBtn}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      togglePopularLiked(event.id);
+                    }}
+                  >
+                    <Ionicons
+                      name={liked ? 'heart' : 'heart-outline'}
+                      size={22}
+                      color={liked ? theme.colors.heartActive : theme.colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
         <TouchableOpacity
           style={styles.seeAllEventsWrap}
           onPress={() => navigation.navigate('Schedule')}
         >
           <Text style={[styles.seeAllEvents, { color: theme.colors.textLink }]}>See All Events</Text>
-          <View style={[styles.seeAllEventsUnderline, { backgroundColor: theme.colors.textLink }]} />
         </TouchableOpacity>
       </View>
 
       {/* Section 7: Highlights */}
-      <View style={[styles.section7, { backgroundColor: theme.colors.backgroundAlt }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Highlights</Text>
+      <View style={[styles.section7, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.section4Title, { marginBottom: 18 }]}>Highlights</Text>
         {highlights.map((post) => (
           <View key={post.id} style={[styles.highlightCard, { backgroundColor: theme.colors.surface }]}>
             {/* User row */}
             <View style={styles.highlightUserRow}>
-              <View style={[styles.highlightAvatar, { backgroundColor: '#E87D2B' }]} />
+              <Image
+                source={require('../../../assets/images/person.png')}
+                style={styles.highlightAvatar}
+                resizeMode="cover"
+              />
               <View style={styles.highlightUserInfo}>
                 <View style={styles.highlightNameRow}>
                   <Text style={[styles.highlightName, { color: theme.colors.text }]}>{post.name}</Text>
@@ -390,6 +460,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F2EFEB',
   },
   content: {
     paddingBottom: 40,
@@ -406,7 +477,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   homeHeaderName: {
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: '700',
     flex: 1,
     marginRight: 12,
@@ -417,13 +488,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerIconBtn: {
-    padding: 4,
+    padding: 6,
+    borderRadius: 100,
+    backgroundColor: 'white',
   },
   headerAvatarWrap: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 100,
     overflow: 'hidden',
+    backgroundColor: '#FFF'
   },
   headerAvatar: {
     width: '100%',
@@ -459,7 +533,7 @@ const styles = StyleSheet.create({
   quickButton: {
     flex: 1,
     borderRadius: 12,
-    paddingVertical: 20,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 6,
@@ -481,104 +555,110 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   eventsScrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: PADDING,
     paddingBottom: 12,
   },
-  eventCard: {
-    width: EVENT_CARD_WIDTH,
-    marginRight: 12,
+  getTicketsSection: {
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  getTicketsTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginVertical: 12,
+    paddingHorizontal: PADDING,
+  },
+  getTicketsCard: {
     borderRadius: 16,
     padding: 16,
-    minHeight: 200,
+    width: UPCOMING_CARD_SIZE,
+    height: UPCOMING_CARD_SIZE,
+    marginRight: 16,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+      android: { elevation: 4 },
+    }),
   },
-  eventCardImageStyle: {
+  getTicketsCardImageStyle: {
+    borderRadius: 16,
+    resizeMode: 'cover',
+  },
+  getTicketsCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(232, 125, 43, 0.25)',
     borderRadius: 16,
   },
-  eventCardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(232, 125, 43, 0.75)',
-  },
-  eventCardTop: {
+  getTicketsCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  eventDate: {
+  getTicketsDate: {
     fontSize: 12,
     fontWeight: '600',
     color: '#FFF',
   },
-  eventAttendees: {
+  getTicketsAttendees: {
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: 8,
   },
-  eventAttendeesText: {
+  getTicketsAttendeesText: {
     fontSize: 14,
     color: '#FFF',
     fontWeight: '600',
     marginLeft: 4,
   },
-  eventCardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  getTicketsCardTitle: {
+    fontSize: 40,
+    lineHeight: 40,
+    fontWeight: '700',
     color: '#FFF',
-    marginBottom: 4,
+    marginBottom: 20,
   },
-  eventCardSub: {
+  getTicketsCardSub: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.9)',
     marginBottom: 2,
   },
-  eventCardStage: {
+  getTicketsCardStage: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.9)',
     marginBottom: 16,
   },
-  eventCardActions: {
+  getTicketsCardActions: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 'auto',
+    gap: 12,
   },
-  eventHeart: {
-    padding: 4,
+  getTicketsHeart: {
+    padding: 8,
+    borderRadius: 100,
+    backgroundColor: '#1a1a1a',
   },
   getTicketBtn: {
+    flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 100,
   },
-  getTicketText: {
+  getTicketBtnText: {
     fontSize: 14,
+    textAlign: 'center',
     fontWeight: '600',
     color: '#FFF',
-  },
-  sliderDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#CCC',
-    marginHorizontal: 3,
-  },
-  dotActive: {
-    width: 8,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#666',
-    marginHorizontal: 3,
   },
   section4: {
     paddingTop: 8,
     paddingBottom: 24,
+  },
+  section4Title: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   section4Header: {
     flexDirection: 'row',
@@ -603,21 +683,22 @@ const styles = StyleSheet.create({
   merchCardImage: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#FFF',
     position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  merchPlaceholder: {
-    flex: 1,
+  merchCardImageFill: {
     width: '100%',
     height: '100%',
   },
   merchTag: {
     position: 'absolute',
-    top: 10,
+    top: 16,
     left: 10,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 100,
   },
   merchTagText: {
     fontSize: 10,
@@ -628,19 +709,39 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    padding: 4,
+    padding: 6,
+    borderRadius: 100,
+    backgroundColor: '#F5F2EE',
+  },
+  merchCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
+    gap: 8,
+    backgroundColor: '#F2EFEB',
   },
   merchTitle: {
+    flex: 1,
     fontSize: 14,
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingBottom: 4,
+    fontWeight: '500',
+    marginRight: 8,
   },
-  merchPrice: {
+  merchPriceWrap: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  merchPriceNumber: {
     fontSize: 16,
-    fontWeight: 'bold',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    fontWeight: '700',
+  },
+  merchPriceUnit: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 2,
+    opacity: 0.9,
   },
   section5: {
     paddingVertical: 32,
@@ -672,22 +773,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   section5Content: {
+    flex: 1,
+    width: '100%',
     position: 'relative',
     zIndex: 1,
     alignItems: 'center',
   },
   section5Title: {
-    fontSize: 24,
+    textAlign: 'center',
+    fontSize: 40,
+    lineHeight: 40,
     fontWeight: 'bold',
     color: '#FFF',
     marginBottom: 20,
     textTransform: 'lowercase',
   },
   supportButton: {
+    width: '100%',
+    alignItems: 'center',
     backgroundColor: '#FFF',
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 100,
     marginBottom: 12,
   },
   supportButtonText: {
@@ -703,41 +810,58 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     paddingHorizontal: 20,
   },
-  popularEventCard: {
+  section6Title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  nextAppearanceCard: {
     flexDirection: 'row',
-    alignItems: 'center',
     borderRadius: 12,
-    padding: 12,
     marginBottom: 12,
     overflow: 'hidden',
+    alignItems: 'stretch',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4 },
+      android: { elevation: 2 },
+    }),
   },
-  popularEventImage: {
-    width: 72,
-    height: 72,
-    borderRadius: 10,
-    marginRight: 14,
+  nextAppearanceImage: {
+    maxWidth: 70,
+    aspectRatio: 1,
+    marginLeft: 14,
+    marginVertical: 14,
+    borderRadius: 12,
   },
-  popularEventContent: {
+  nextAppearanceRight: {
     flex: 1,
-    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    justifyContent: 'space-evenly',
     minWidth: 0,
   },
-  popularEventDate: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  popularEventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  popularEventActions: {
+  nextAppearanceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
+    justifyContent: 'space-between',
   },
-  popularEventHeart: {
-    padding: 8,
-    marginLeft: 4,
+  nextAppearanceDateTime: {
+    fontSize: 13,
+    marginRight: 8,
+  },
+  nextAppearanceTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 8,
+  },
+  likedBtn: {
+    padding: 10,
+    borderRadius: 100,
+    backgroundColor: '#F2EFEB',
+  },
+  forwardIcon: {
+    marginRight: 12,
   },
   seeAllEventsWrap: {
     alignSelf: 'center',
@@ -773,8 +897,9 @@ const styles = StyleSheet.create({
   highlightAvatar: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: 100,
     marginRight: 10,
+    overflow: 'hidden',
   },
   highlightUserInfo: {
     flex: 1,
@@ -786,7 +911,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   highlightName: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     marginRight: 8,
   },
@@ -794,12 +919,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   highlightEvent: {
-    fontSize: 13,
+    fontSize: 12,
   },
   followButton: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 100,
     marginRight: 8,
   },
   followButtonText: {

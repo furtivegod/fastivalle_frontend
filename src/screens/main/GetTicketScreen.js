@@ -14,7 +14,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,14 +24,21 @@ const BANNER_ASPECT = 16 / 10;
 const TICKET_DESC = 'Ticket includes full event entry, a bottle of water, and a notebook';
 const MAX_GROUP_TICKETS = 25;
 
+const PADDING = 20;
+const HERO_CARD_SIZE = SCREEN_WIDTH - PADDING * 2;
+
 const GetTicketScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const event = route.params?.event || {
     id: '1',
     date: 'AUG 15, 10:00AM',
     title: 'christian music festival',
+    subtitle: 'WORSHIP',
+    stage: 'MAIN STAGE',
+    attendees: 54,
   };
 
   const [activeTab, setActiveTab] = useState('General');
@@ -171,70 +178,98 @@ const GetTicketScreen = () => {
     }
   };
 
+  const headerHeight = 48;
+  const scrollPaddingTop = insets.top + headerHeight;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.backgroundAlt }]}>
-      <SafeAreaView style={styles.safeTop} edges={['top']} />
-
-      {/* Header: Back only */}
-      <View style={[styles.headerRow, { backgroundColor: theme.colors.backgroundAlt }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
-          <Text style={[styles.backText, { color: theme.colors.text }]}>Back</Text>
-        </TouchableOpacity>
+      {/* Fixed top bar: back button */}
+      <View style={[styles.headerFixed, { paddingTop: insets.top, backgroundColor: theme.colors.backgroundAlt }]}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+            <Text style={[styles.backText, { color: theme.colors.text }]}>Back</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: scrollPaddingTop }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Event banner */}
-        <View style={[styles.bannerWrap, { width: SCREEN_WIDTH }]}>
-          <ImageBackground
-            source={require('../../../assets/images/welcome_bg.png')}
-            style={styles.bannerImage}
-            imageStyle={styles.bannerImageStyle}
-          >
-            <View style={[StyleSheet.absoluteFill, styles.bannerOverlay]} />
-            <View style={styles.bannerTextWrap}>
-              <Text style={styles.bannerDate}>{event.date}</Text>
-              <Text style={styles.bannerTitle}>{event.title}</Text>
-            </View>
-          </ImageBackground>
+        {/* First section: same card style as Upcoming Events on Home */}
+        <View style={styles.heroCardWrap}>
+          <View style={styles.heroCard}>
+            <ImageBackground
+              source={require('../../../assets/images/cover.png')}
+              style={styles.heroCardBg}
+              imageStyle={styles.heroCardImageStyle}
+            >
+              <View style={styles.heroCardOverlay} />
+              <View style={styles.heroCardTop}>
+                <Text style={styles.heroCardDate}>{event.date}</Text>
+                <View style={styles.heroCardAttendees}>
+                  <Ionicons name="people" size={14} color="#FFF" />
+                  <Text style={styles.heroCardAttendeesText}>{event.attendees ?? 0}</Text>
+                </View>
+              </View>
+              <View style={styles.heroCardSpacer} />
+              <Text style={styles.heroCardTitle}>{event.title}</Text>
+              {event.subtitle != null && (
+                <Text style={styles.heroCardSub}>{event.subtitle}</Text>
+              )}
+              {event.stage != null && (
+                <Text style={styles.heroCardStage}>{event.stage}</Text>
+              )}
+            </ImageBackground>
+          </View>
         </View>
 
-        {/* Tabs: General | Group */}
-        <View style={[styles.tabRow, { backgroundColor: theme.colors.backgroundAlt }]}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'General' && { backgroundColor: theme.colors.text }]}
-            onPress={() => setActiveTab('General')}
-          >
-            <Text
+        {/* Tabs: General | Group — same pill format as All Events / My Events in Schedule */}
+        <View style={styles.tabRow}>
+          <View style={styles.tabPillWrap}>
+            <TouchableOpacity
               style={[
-                styles.tabText,
-                { color: activeTab === 'General' ? '#FFF' : theme.colors.textSecondary },
+                styles.tabSegment,
+                styles.tabSegmentLeft,
+                activeTab === 'General' && styles.tabSegmentActive,
               ]}
+              onPress={() => setActiveTab('General')}
+              activeOpacity={0.9}
             >
-              General
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'Group' && { backgroundColor: theme.colors.text }]}
-            onPress={() => setActiveTab('Group')}
-          >
-            <Text
+              <Text
+                style={[
+                  styles.tabSegmentText,
+                  activeTab === 'General' ? styles.tabSegmentTextActive : styles.tabSegmentTextInactive,
+                ]}
+              >
+                General
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
-                styles.tabText,
-                { color: activeTab === 'Group' ? '#FFF' : theme.colors.textSecondary },
+                styles.tabSegment,
+                styles.tabSegmentRight,
+                activeTab === 'Group' && styles.tabSegmentActive,
               ]}
+              onPress={() => setActiveTab('Group')}
+              activeOpacity={0.9}
             >
-              Group
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.tabSegmentText,
+                  activeTab === 'Group' ? styles.tabSegmentTextActive : styles.tabSegmentTextInactive,
+                ]}
+              >
+                Group
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Ticket cards: General (steppers) or Group (Select buttons) */}
@@ -550,7 +585,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeTop: {
+  headerFixed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     zIndex: 10,
   },
   headerRow: {
@@ -558,6 +597,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
+    height: 48,
   },
   backBtn: {
     flexDirection: 'row',
@@ -573,53 +613,118 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 160,
   },
-  bannerWrap: {
-    marginBottom: 0,
+  heroCardWrap: {
+    paddingHorizontal: PADDING,
+    marginBottom: 20,
+    alignItems: 'center',
   },
-  bannerImage: {
-    width: '100%',
-    aspectRatio: BANNER_ASPECT,
-    justifyContent: 'flex-end',
-    padding: 16,
+  heroCard: {
+    width: HERO_CARD_SIZE,
+    height: HERO_CARD_SIZE,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+      android: { elevation: 4 },
+    }),
   },
-  bannerImageStyle: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  bannerTextWrap: {
-    justifyContent: 'flex-end',
+  heroCardBg: {
     flex: 1,
     padding: 16,
+    justifyContent: 'space-between',
   },
-  bannerDate: {
+  heroCardSpacer: {
+    flex: 1,
+  },
+  heroCardImageStyle: {
+    borderRadius: 16,
+    resizeMode: 'cover',
+  },
+  heroCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(232, 125, 43, 0.25)',
+    borderRadius: 16,
+  },
+  heroCardTop: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  heroCardDate: {
+    fontSize: 12,
+    fontWeight: '600',
     color: '#FFF',
+  },
+  heroCardAttendees: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroCardAttendeesText: {
     fontSize: 14,
-    marginBottom: 4,
-  },
-  bannerTitle: {
     color: '#FFF',
-    fontSize: 22,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  heroCardTitle: {
+    fontSize: 40,
+    lineHeight: 40,
     fontWeight: '700',
+    color: '#FFF',
+    marginBottom: 8,
+  },
+  heroCardSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 2,
+  },
+  heroCardStage: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.9)',
   },
   tabRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-  },
-  tab: {
-    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: '#E8E8E8',
+    marginBottom: 20,
   },
-  tabText: {
+  tabPillWrap: {
+    flexDirection: 'row',
+    borderRadius: 100,
+    overflow: 'hidden',
+    backgroundColor: '#E0DDD8',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2 },
+      android: { elevation: 1 },
+    }),
+  },
+  tabSegment: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabSegmentLeft: {
+    backgroundColor: '#E0DDD8',
+  },
+  tabSegmentRight: {
+    backgroundColor: '#E0DDD8',
+  },
+  tabSegmentActive: {
+    borderRadius: 100,
+    backgroundColor: '#1a1a1a',
+  },
+  tabSegmentText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  tabSegmentTextInactive: {
+    color: '#1a1a1a',
+  },
+  tabSegmentTextActive: {
+    color: '#FFF',
   },
   cardsWrap: {
     paddingHorizontal: 16,
