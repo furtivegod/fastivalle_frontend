@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -14,6 +12,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import { Text, TextInput } from '../../components';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -182,7 +181,7 @@ const GetTicketScreen = () => {
   const scrollPaddingTop = insets.top + headerHeight;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.backgroundAlt }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Fixed top bar: back button */}
       <View style={[styles.headerFixed, { paddingTop: insets.top, backgroundColor: theme.colors.backgroundAlt }]}>
         <View style={styles.headerRow}>
@@ -213,19 +212,9 @@ const GetTicketScreen = () => {
               <View style={styles.heroCardOverlay} />
               <View style={styles.heroCardTop}>
                 <Text style={styles.heroCardDate}>{event.date}</Text>
-                <View style={styles.heroCardAttendees}>
-                  <Ionicons name="people" size={14} color="#FFF" />
-                  <Text style={styles.heroCardAttendeesText}>{event.attendees ?? 0}</Text>
-                </View>
               </View>
               <View style={styles.heroCardSpacer} />
               <Text style={styles.heroCardTitle}>{event.title}</Text>
-              {event.subtitle != null && (
-                <Text style={styles.heroCardSub}>{event.subtitle}</Text>
-              )}
-              {event.stage != null && (
-                <Text style={styles.heroCardStage}>{event.stage}</Text>
-              )}
             </ImageBackground>
           </View>
         </View>
@@ -281,6 +270,7 @@ const GetTicketScreen = () => {
                 style={[styles.ticketCard, { backgroundColor: theme.colors.surface }]}
               >
                 <Text style={[styles.ticketName, { color: theme.colors.text }]}>{t.name}</Text>
+                <View style={styles.ticketLine} />
                 <Text style={[styles.ticketDesc, { color: theme.colors.textSecondary }]}>
                   {TICKET_DESC}
                 </Text>
@@ -293,7 +283,7 @@ const GetTicketScreen = () => {
                       <Text style={styles.soldOutText}>SOLD OUT</Text>
                     </View>
                   ) : (
-                    <View style={[styles.stepper, { backgroundColor: theme.colors.borderLight }]}>
+                    <View style={styles.stepper}>
                       <TouchableOpacity
                         style={[
                           styles.stepperBtn,
@@ -304,22 +294,22 @@ const GetTicketScreen = () => {
                       >
                         <Ionicons
                           name="remove"
-                          size={18}
+                          size={20}
                           color={
                             quantities[t.qtyKey] === 0
-                              ? theme.colors.textMuted
-                              : theme.colors.text
+                              ? '#9E9E9E'
+                              : '#1a1a1a'
                           }
                         />
                       </TouchableOpacity>
-                      <Text style={[styles.stepperQty, { color: theme.colors.text }]}>
+                      <Text style={styles.stepperQty}>
                         {quantities[t.qtyKey] ?? 0}
                       </Text>
                       <TouchableOpacity
                         style={styles.stepperBtn}
                         onPress={() => adjustQty(t.qtyKey, 1)}
                       >
-                        <Ionicons name="add" size={18} color={theme.colors.text} />
+                        <Ionicons name="add" size={20} color="#1a1a1a" />
                       </TouchableOpacity>
                     </View>
                   )}
@@ -333,33 +323,40 @@ const GetTicketScreen = () => {
                 style={[styles.ticketCard, styles.groupTicketCard, { backgroundColor: theme.colors.surface }]}
               >
                 <View style={styles.groupTicketHeader}>
-                  <View style={[styles.ticketDot, { backgroundColor: t.dotColor }]} />
-                  <Text style={[styles.ticketName, { color: theme.colors.text }]}>{t.name}</Text>
+                  <View style={styles.groupTicketHeaderLeft}>
+                    <View style={styles.groupTicketDot} />
+                    <Text style={[styles.groupTicketName, { color: theme.colors.text }]}>
+                      {t.name}
+                    </Text>
+                  </View>
+                  <View style={styles.groupTicketHeaderRight}>
+                    <Text style={[styles.groupTicketPriceNum, { color: theme.colors.text }]}>
+                      {t.price}
+                    </Text>
+                    <Text style={[styles.groupTicketPriceSuffix, { color: theme.colors.textSecondary }]}>
+                      {' '}
+                      USD /person
+                    </Text>
+                  </View>
                 </View>
-                <Text style={[styles.ticketPrice, { color: theme.colors.text }]}>
-                  <Text style={styles.ticketPriceNum}>{t.price}</Text>
-                  <Text style={[styles.ticketPriceSuffix, { color: theme.colors.textSecondary }]}>
-                    {' '}
-                    USD /person
-                  </Text>
-                </Text>
-                <Text style={[styles.ticketDesc, { color: theme.colors.textSecondary }]}>
+                <View style={styles.groupTicketSeparator} />
+                <Text style={[styles.groupTicketDesc, { color: theme.colors.textSecondary }]}>
                   {TICKET_DESC}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.selectButton, { backgroundColor: theme.colors.text }]}
+                  style={[styles.groupSelectButton, { backgroundColor: theme.colors.text }]}
                   activeOpacity={0.8}
                   onPress={() => openGroupSheet(t)}
                 >
                   {groupQuantities[t.id] > 0 ? (
                     <View style={styles.selectButtonContent}>
-                      <Text style={styles.selectButtonText}>
+                      <Text style={styles.groupSelectButtonText}>
                         {groupQuantities[t.id]} tickets for {groupQuantities[t.id] * t.price} USD
                       </Text>
                       <Ionicons name="pencil" size={16} color="#FFF" style={styles.selectButtonIcon} />
                     </View>
                   ) : (
-                    <Text style={styles.selectButtonText}>Select</Text>
+                    <Text style={styles.groupSelectButtonText}>Select</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -368,53 +365,55 @@ const GetTicketScreen = () => {
         </View>
 
         {/* Support */}
-        <View style={[styles.supportCard, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.supportTitle, { color: theme.colors.text }]}>Support</Text>
-          <Text style={[styles.supportSub, { color: theme.colors.textSecondary }]}>
+        <View style={styles.supportCard}>
+          <View style={styles.supportHeaderRow}>
+            <Text style={[styles.supportTitle, { color: theme.colors.text }]}>Support</Text>
+            <View style={styles.supportActionWrap}>
+              {!supportExpanded ? (
+                <TouchableOpacity
+                  style={styles.supportActionBtn}
+                  onPress={() => setSupportExpanded(true)}
+                  activeOpacity={0.8}
+                  hitSlop={12}
+                >
+                  <Text style={[styles.supportActionText, { color: theme.colors.textLink }]}>
+                    Give Now
+                  </Text>
+                  <Ionicons name="add" size={20} color={theme.colors.textLink} style={styles.supportActionIcon} />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.supportActionBtn}
+                  onPress={() => setSupportExpanded(false)}
+                  activeOpacity={0.8}
+                  hitSlop={12}
+                >
+                  <Text style={[styles.supportActionText, { color: theme.colors.textLink }]}>
+                    Cancel
+                  </Text>
+                  <Ionicons name="close" size={22} color={theme.colors.textLink} style={styles.supportActionIcon} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <Text style={styles.supportSub}>
             Support the mission and help sustain future events.
           </Text>
-          <TouchableOpacity
-            style={styles.giveNowWrap}
-            activeOpacity={0.8}
-            onPress={toggleSupport}
-          >
-            <Text style={[styles.giveNowText, { color: theme.colors.textLink }]}>Give Now</Text>
-            <Ionicons
-              name={supportExpanded ? 'remove' : 'add'}
-              size={20}
-              color={theme.colors.textLink}
-            />
-          </TouchableOpacity>
         </View>
 
         {/* Expanded Give Now section (inline, not modal) */}
         {supportExpanded && (
-          <View style={[styles.supportExpandedWrap, { backgroundColor: theme.colors.backgroundAlt }]}>
-            <View style={styles.supportExpandedHeader}>
-              <TouchableOpacity onPress={closeSupport} style={styles.supportCancelWrap} hitSlop={12}>
-                <Text style={[styles.supportCancelText, { color: theme.colors.textLink }]}>
-                  Cancel
-                </Text>
-                <Ionicons name="close" size={22} color={theme.colors.textLink} />
-              </TouchableOpacity>
-            </View>
-
+          <View style={[styles.supportExpandedWrap, { backgroundColor: theme.colors.surface }]}>
             {/* Amount input field */}
             <View
-              style={[
-                styles.supportAmountArea,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                },
-              ]}
+              style={
+                styles.supportAmountArea
+              }
             >
               <TextInput
                 style={[
                   styles.supportAmountInput,
-                  {
-                    color: theme.colors.text,
-                  },
+                  { color: theme.colors.text },
                 ]}
                 value={supportAmount}
                 onChangeText={onAmountChange}
@@ -426,29 +425,37 @@ const GetTicketScreen = () => {
               <Text
                 style={[
                   styles.supportAmountCurrency,
-                  { color: theme.colors.textSecondary },
+                  { color: theme.colors.text },
                 ]}
               >
-                {' '}
                 USD
               </Text>
             </View>
 
             <View style={styles.supportPresets}>
-              {[10, 15, 20].map((n) => (
-                <TouchableOpacity
-                  key={n}
-                  style={[
-                    styles.supportPresetBtn,
-                    { backgroundColor: theme.colors.borderLight },
-                  ]}
-                  onPress={() => setPresetAmount(n)}
-                >
-                  <Text style={[styles.supportPresetText, { color: theme.colors.text }]}>
-                    {n} USD
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {[10, 15, 20].map((n) => {
+                const selected = parseInt(supportAmount, 10) === n;
+                return (
+                  <TouchableOpacity
+                    key={n}
+                    style={[
+                      styles.supportPresetBtn,
+                      selected && [styles.supportPresetBtnActive, { backgroundColor: theme.colors.text }],
+                    ]}
+                    onPress={() => setPresetAmount(n)}
+                    activeOpacity={0.9}
+                  >
+                    <Text
+                      style={[
+                        styles.supportPresetText,
+                        selected ? styles.supportPresetTextActive : { color: '#1a1a1a' },
+                      ]}
+                    >
+                      {n} USD
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         )}
@@ -513,7 +520,7 @@ const GetTicketScreen = () => {
           <Animated.View
             style={[
               styles.groupSheetCard,
-              { backgroundColor: theme.colors.background, transform: [{ translateY: modalSlide }] },
+              { backgroundColor: theme.colors.surface, transform: [{ translateY: modalSlide }] },
             ]}
           >
             <View style={styles.groupSheetHandle} />
@@ -620,7 +627,7 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     width: HERO_CARD_SIZE,
-    height: HERO_CARD_SIZE,
+    height: HERO_CARD_SIZE * 0.6,
     borderRadius: 16,
     overflow: 'hidden',
     ...Platform.select({
@@ -631,7 +638,6 @@ const styles = StyleSheet.create({
   heroCardBg: {
     flex: 1,
     padding: 16,
-    justifyContent: 'space-between',
   },
   heroCardSpacer: {
     flex: 1,
@@ -651,11 +657,11 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   heroCardDate: {
-    fontSize: 12,
+    marginVertical: 16,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFF',
   },
@@ -733,6 +739,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -747,6 +754,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     marginBottom: 4,
+  },
+  ticketLine: {
+    width: SCREEN_WIDTH,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 6,
+    marginHorizontal: -16,
+    alignSelf: 'stretch',
   },
   ticketDesc: {
     fontSize: 13,
@@ -763,12 +778,12 @@ const styles = StyleSheet.create({
   },
   ticketPriceNum: {
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: 32,
   },
   soldOutBadge: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 100,
   },
   soldOutText: {
     color: '#FFF',
@@ -778,37 +793,96 @@ const styles = StyleSheet.create({
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
-    overflow: 'hidden',
   },
   stepperBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2EFEB',
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepperBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   stepperQty: {
-    fontSize: 15,
-    fontWeight: '600',
-    minWidth: 24,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
     textAlign: 'center',
+    marginHorizontal: 14,
   },
   groupTicketCard: {
     paddingBottom: 16,
+    borderRadius: 14,
   },
   groupTicketHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    marginBottom: 0,
   },
-  ticketDot: {
+  groupTicketHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+  },
+  groupTicketDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
+    backgroundColor: '#808080',
     marginRight: 10,
+  },
+  groupTicketName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  groupTicketHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  groupTicketPriceNum: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  groupTicketPriceSuffix: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginLeft: 2,
+  },
+  groupTicketSeparator: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 12,
+    marginHorizontal: -16,
+    alignSelf: 'stretch',
+  },
+  groupTicketDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  groupSelectButton: {
+    alignSelf: 'stretch',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groupSelectButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  selectButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectButtonIcon: {
+    marginLeft: 8,
   },
   ticketPriceSuffix: {
     fontSize: 15,
@@ -821,52 +895,45 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 12,
   },
-  selectButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   selectButtonText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
   },
-  selectButtonIcon: {
-    marginLeft: 8,
-  },
   supportCard: {
-    marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 12,
     padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-      },
-      android: { elevation: 2 },
-    }),
+  },
+  supportHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
   supportTitle: {
     fontSize: 17,
     fontWeight: '700',
-    marginBottom: 4,
+  },
+  supportActionWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supportActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supportActionText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  supportActionIcon: {
+    marginLeft: 4,
   },
   supportSub: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 8,
-  },
-  giveNowWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-  },
-  giveNowText: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginRight: 4,
+    marginVertical: 8,
   },
   bottomPad: {
     height: 24,
@@ -880,40 +947,30 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderRadius: 16,
   },
-  supportExpandedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 16,
-  },
-  supportCancelWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  supportCancelText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
   supportAmountArea: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     marginBottom: 20,
-    minHeight: 56,
+    minHeight: 64,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6 },
+      android: { elevation: 2 },
+    }),
   },
   supportAmountInput: {
-    flex: 1,
-    fontSize: 28,
+    minWidth: 48,
+    fontSize: 40,
     fontWeight: '700',
     padding: 0,
-    marginRight: 6,
   },
   supportAmountCurrency: {
+    marginTop: 4,
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: '700',
   },
   supportPresets: {
     flexDirection: 'row',
@@ -922,14 +979,22 @@ const styles = StyleSheet.create({
   },
   supportPresetBtn: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 24,
+    borderRadius: 100,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E0DDD8',
+  },
+  supportPresetBtnActive: {
+    borderRadius: 100,
   },
   supportPresetText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  supportPresetTextActive: {
+    color: '#FFF',
   },
   // Fixed bottom total
   fixedBottom: {
@@ -974,7 +1039,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 100,
     marginBottom: 8,
   },
   applePayText: {
@@ -984,6 +1049,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   payOtherWrap: {
+    paddingVertical: 8,
+    marginBottom: 4,
     alignItems: 'center',
   },
   payOtherText: {
@@ -1023,11 +1090,11 @@ const styles = StyleSheet.create({
   },
   groupSheetInput: {
     borderWidth: 2,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: 100,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 18,
-    marginBottom: 8,
+    marginBottom: 20,
   },
   groupSheetErrorRow: {
     flexDirection: 'row',
@@ -1040,8 +1107,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   groupSheetDoneBtn: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 100,
     alignItems: 'center',
   },
   groupSheetDoneText: {

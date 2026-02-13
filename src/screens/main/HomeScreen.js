@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   ImageBackground,
   Platform,
 } from 'react-native';
+import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -612,9 +612,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   getTicketsCardTitle: {
-    fontSize: 40,
+    fontSize: 44,
     lineHeight: 40,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: '#FFF',
     marginBottom: 20,
   },

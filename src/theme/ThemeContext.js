@@ -137,32 +137,35 @@ export const ThemeProvider = ({ children }) => {
       round: 9999,
     },
     
+    fonts: {
+      default: 'Agrandir',
+    },
     typography: {
       // Large titles
-      h1: { fontSize: 32, fontWeight: 'bold', lineHeight: 40, letterSpacing: -0.5 },
-      h2: { fontSize: 24, fontWeight: 'bold', lineHeight: 32, letterSpacing: -0.3 },
-      h3: { fontSize: 20, fontWeight: '600', lineHeight: 28 },
-      h4: { fontSize: 18, fontWeight: '600', lineHeight: 24 },
+      h1: { fontFamily: 'Agrandir', fontSize: 32, fontWeight: 'bold', lineHeight: 40, letterSpacing: -0.5 },
+      h2: { fontFamily: 'Agrandir', fontSize: 24, fontWeight: 'bold', lineHeight: 32, letterSpacing: -0.3 },
+      h3: { fontFamily: 'Agrandir', fontSize: 20, fontWeight: '600', lineHeight: 28 },
+      h4: { fontFamily: 'Agrandir', fontSize: 18, fontWeight: '600', lineHeight: 24 },
       
       // Body text
-      body: { fontSize: 16, fontWeight: '400', lineHeight: 24 },
-      bodyMedium: { fontSize: 16, fontWeight: '500', lineHeight: 24 },
-      bodyBold: { fontSize: 16, fontWeight: '600', lineHeight: 24 },
+      body: { fontFamily: 'Agrandir', fontSize: 16, fontWeight: '400', lineHeight: 24 },
+      bodyMedium: { fontFamily: 'Agrandir', fontSize: 16, fontWeight: '500', lineHeight: 24 },
+      bodyBold: { fontFamily: 'Agrandir', fontSize: 16, fontWeight: '600', lineHeight: 24 },
       
       // Smaller text
-      caption: { fontSize: 14, fontWeight: '400', lineHeight: 20 },
-      captionMedium: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
-      small: { fontSize: 12, fontWeight: '400', lineHeight: 16 },
-      smallMedium: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
-      tiny: { fontSize: 10, fontWeight: '400', lineHeight: 14 },
+      caption: { fontFamily: 'Agrandir', fontSize: 14, fontWeight: '400', lineHeight: 20 },
+      captionMedium: { fontFamily: 'Agrandir', fontSize: 14, fontWeight: '500', lineHeight: 20 },
+      small: { fontFamily: 'Agrandir', fontSize: 12, fontWeight: '400', lineHeight: 16 },
+      smallMedium: { fontFamily: 'Agrandir', fontSize: 12, fontWeight: '500', lineHeight: 16 },
+      tiny: { fontFamily: 'Agrandir', fontSize: 10, fontWeight: '400', lineHeight: 14 },
       
       // Special
-      button: { fontSize: 16, fontWeight: '600', lineHeight: 24 },
-      buttonSmall: { fontSize: 14, fontWeight: '600', lineHeight: 20 },
-      label: { fontSize: 14, fontWeight: '600', lineHeight: 20 },
-      price: { fontSize: 24, fontWeight: 'bold', lineHeight: 32 },
-      priceSmall: { fontSize: 16, fontWeight: '600', lineHeight: 24 },
-      eventDate: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
+      button: { fontFamily: 'Agrandir', fontSize: 16, fontWeight: '600', lineHeight: 24 },
+      buttonSmall: { fontFamily: 'Agrandir', fontSize: 14, fontWeight: '600', lineHeight: 20 },
+      label: { fontFamily: 'Agrandir', fontSize: 14, fontWeight: '600', lineHeight: 20 },
+      price: { fontFamily: 'Agrandir', fontSize: 24, fontWeight: 'bold', lineHeight: 32 },
+      priceSmall: { fontFamily: 'Agrandir', fontSize: 16, fontWeight: '600', lineHeight: 24 },
+      eventDate: { fontFamily: 'Agrandir', fontSize: 12, fontWeight: '500', lineHeight: 16 },
     },
     
     shadows: {

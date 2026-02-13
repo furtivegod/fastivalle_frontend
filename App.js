@@ -5,6 +5,8 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/theme/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 
+// Agrandir font is applied globally in index.js (patch to Text/TextInput)
+
 export default function App() {
   return (
     <ThemeProvider>

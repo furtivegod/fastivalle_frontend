@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -38,94 +38,103 @@ const PurchaseSuccessScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
-      <SafeAreaView style={styles.safeTop} edges={['top']} />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.headerSpacer} />
-          <TouchableOpacity
-            onPress={handleClose}
-            style={styles.closeButton}
-            hitSlop={12}
-          >
-            <Ionicons name="close" size={22} color={theme.colors.text} />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.successTitle}>your tickets have been purchased successfully</Text>
-
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <View style={styles.bannerWrap}>
-            <ImageBackground
-              source={require('../../../assets/images/welcome_bg.png')}
-              style={styles.bannerImage}
-              imageStyle={styles.bannerImageStyle}
+    <ImageBackground
+      source={require('../../../assets/images/splash_bg.png')}
+      style={styles.bgImage}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.headerSpacer} />
+            <TouchableOpacity
+              onPress={handleClose}
+              style={styles.closeButton}
+              hitSlop={12}
             >
-              <View style={[StyleSheet.absoluteFill, styles.bannerOverlay]} />
-              <View style={styles.bannerTextWrap}>
-                <Text style={styles.bannerTitle}>{event.title}</Text>
-                <Text style={styles.bannerDate}>{event.date}</Text>
-                <Text style={styles.bannerMeta}>CONCERT</Text>
-                <Text style={styles.bannerMeta}>MAIN STAGE</Text>
-              </View>
-            </ImageBackground>
-          </View>
-
-          <View style={styles.cardBody}>
-            <View style={styles.categoryRow}>
-              <View>
-                <Text style={[styles.categoryLabel, { color: theme.colors.textSecondary }]}>
-                  CATEGORY
-                </Text>
-                <Text style={[styles.categoryValue, { color: theme.colors.text }]}>{category}</Text>
-              </View>
-              <View style={[styles.ticketTypePill, { backgroundColor: theme.colors.borderLight }]}>
-                <Text style={[styles.ticketTypeText, { color: theme.colors.text }]}>{ticketType}</Text>
-              </View>
-            </View>
-
-            <View style={styles.qtyQrRow}>
-              <Text style={[styles.qtyText, { color: theme.colors.text }]}>{quantity}x</Text>
-              <View style={[styles.qrPlaceholder, { backgroundColor: theme.colors.borderLight }]}>
-                <Ionicons name="qr-code-outline" size={40} color={theme.colors.textSecondary} />
-              </View>
-            </View>
-
-            <Text style={[styles.orderLabel, { color: theme.colors.textSecondary }]}>
-              Order Number: {orderNumber}
-            </Text>
-
-            <TouchableOpacity style={styles.viewTicketRow} activeOpacity={0.8}>
-              <Text style={[styles.viewTicketText, { color: theme.colors.textLink }]}>
-                View Ticket
-              </Text>
-              <Ionicons name="ticket-outline" size={18} color={theme.colors.textLink} />
+              <Ionicons name="close" size={22} />
             </TouchableOpacity>
           </View>
-        </View>
 
-        <Text style={styles.curatePrompt}>don't forget to curate your event lineup</Text>
-        <TouchableOpacity
-          style={[styles.curateButton, { backgroundColor: theme.colors.surface }]}
-          onPress={handleCurateLineup}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.curateButtonText, { color: theme.colors.text }]}>
-            Curate Lineup
-          </Text>
-        </TouchableOpacity>
+          <Text style={styles.successTitle}>your tickets have been purchased successfully</Text>
 
-        <View style={styles.bottomPad} />
-      </ScrollView>
-    </View>
+          <View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
+            <View style={styles.bannerWrap}>
+              <ImageBackground
+                source={require('../../../assets/images/cover.png')}
+                style={styles.bannerImage}
+                imageStyle={styles.bannerImageStyle}
+                resizeMode='cover'
+              >
+                <View style={[StyleSheet.absoluteFill, styles.bannerOverlay]} />
+                <View style={styles.bannerTextWrap}>
+                  <Text style={styles.bannerDate}>{event.date}</Text>
+                  <Text style={styles.bannerTitle}>{event.title}</Text>
+                  <Text style={styles.bannerMeta}>CONCERT</Text>
+                  <Text style={styles.bannerMeta}>MAIN STAGE</Text>
+                </View>
+              </ImageBackground>
+            </View>
+
+            <View style={styles.cardBody}>
+              <View style={styles.categoryRow}>
+                <View style={styles.categoryLeft}>
+                  <Text style={styles.categoryLabel}>CATEGORY</Text>
+                  <View style={styles.categoryValueRow}>
+                    <Text style={[styles.categoryValue, { color: theme.colors.text }]}>{category}</Text>
+                    <View style={[styles.ticketTypePill, { backgroundColor: '#9E9E9E' }]}>
+                      <Text style={styles.ticketTypeText}>{ticketType}</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.qtyQrBlock}>
+                  <Text style={[styles.qtyText, { color: theme.colors.text }]}>{quantity}x</Text>
+                  <View style={styles.qrPlaceholder}>
+                    <Ionicons name="qr-code-outline" size={40} color="#666" />
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.orderRow}>
+                <Text style={styles.orderLabel}>Order Number:</Text>
+                <Text style={[styles.orderValue, { color: theme.colors.text }]}>{orderNumber}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.addToWalletButton, { backgroundColor: theme.colors.text }]}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.addToWalletText}>Add To Wallet</Text>
+                <Ionicons name="wallet-outline" size={20} color="#FFF" style={styles.addToWalletIcon} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Text style={styles.curatePrompt}>don't forget to curate your event lineup</Text>
+          <TouchableOpacity
+            style={styles.curateButton}
+            onPress={handleCurateLineup}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.curateButtonText}>Curate Lineup</Text>
+          </TouchableOpacity>
+
+          <View style={styles.bottomPad} />
+        </ScrollView>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  bgImage: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -152,14 +161,14 @@ const styles = StyleSheet.create({
   closeButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 100,
+    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   successTitle: {
     color: '#FFF',
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 16,
@@ -185,9 +194,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bannerImage: {
-    width: '100%',
+    width: CARD_WIDTH,
     aspectRatio: BANNER_ASPECT,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     padding: 16,
   },
   bannerImageStyle: {
@@ -196,97 +205,126 @@ const styles = StyleSheet.create({
   },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   bannerTextWrap: {
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     flex: 1,
-    padding: 16,
-  },
-  bannerTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
+    paddingVertical: 12,
   },
   bannerDate: {
     color: '#FFF',
-    fontSize: 14,
-    marginBottom: 2,
+    fontSize: 15,
+    marginBottom: 6,
+  },
+  bannerTitle: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 4,
   },
   bannerMeta: {
     color: '#FFF',
     fontSize: 12,
-    opacity: 0.9,
+    opacity: 0.95,
   },
   cardBody: {
     padding: 20,
+    backgroundColor: '#FFFFFF',
   },
   categoryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  categoryLeft: {
+    flex: 1,
+    minWidth: 0,
   },
   categoryLabel: {
-    fontSize: 12,
-    marginBottom: 2,
+    fontSize: 11,
+    color: '#9E9E9E',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  categoryValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   categoryValue: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   ticketTypePill: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 100,
   },
   ticketTypeText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
   },
-  qtyQrRow: {
+  qtyQrBlock: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    gap: 10,
   },
   qtyText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   qrPlaceholder: {
     width: 56,
     height: 56,
     borderRadius: 8,
+    backgroundColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  orderLabel: {
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  viewTicketRow: {
+  orderRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignItems: 'baseline',
+    marginBottom: 20,
     gap: 6,
   },
-  viewTicketText: {
+  orderLabel: {
+    fontSize: 13,
+    color: '#9E9E9E',
+  },
+  orderValue: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  addToWalletButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  addToWalletText: {
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
   },
+  addToWalletIcon: {
+    marginLeft: 8,
+  },
   curatePrompt: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
+    paddingHorizontal: SCREEN_WIDTH * 0.15,
     marginTop: 28,
     marginBottom: 16,
   },
   curateButton: {
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 12,
+    borderRadius: 100,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -300,6 +338,7 @@ const styles = StyleSheet.create({
   curateButtonText: {
     fontSize: 17,
     fontWeight: '700',
+    color: '#1a1a1a',
   },
   bottomPad: {
     height: 24,

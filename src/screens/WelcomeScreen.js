@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
@@ -10,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Text } from '../components';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../context/AuthContext';

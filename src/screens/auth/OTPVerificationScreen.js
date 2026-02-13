@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
+import { Text, TextInput } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 import { useNavigation, useRoute } from '@react-navigation/native';

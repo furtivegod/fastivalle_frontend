@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -13,6 +11,7 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
+import { Text, TextInput } from '../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useNavigation } from '@react-navigation/native';

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Image,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -18,6 +16,7 @@ import {
   Dimensions,
   Easing,
 } from 'react-native';
+import { Text, TextInput } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
