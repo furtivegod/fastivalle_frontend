@@ -355,7 +355,7 @@ const ProfileSetupScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F0',
+    backgroundColor: '#F2EFEB',
   },
   scrollContent: {
     flexGrow: 1,
@@ -372,11 +372,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
   },
   skipText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   skipPlaceholder: {
     width: 40,
@@ -402,6 +400,7 @@ const styles = StyleSheet.create({
   uploadText: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   form: {
     gap: 20,
@@ -412,15 +411,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   optionalText: {
     fontWeight: '400',
     color: '#888',
   },
   input: {
-    height: 50,
+    height: 44,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 100,
     paddingHorizontal: 16,
     fontSize: 16,
   },
@@ -436,6 +436,7 @@ const styles = StyleSheet.create({
     height: 100,
     paddingTop: 12,
     paddingBottom: 12,
+    borderRadius: 12,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -446,13 +447,14 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   spacer: {
     flex: 1,
     minHeight: 40,
   },
   proceedButton: {
-    height: 56,
+    height: 44,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
@@ -461,7 +463,6 @@ const styles = StyleSheet.create({
   proceedButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   datePickerContainer: {
     position: 'absolute',
@@ -491,7 +492,6 @@ const styles = StyleSheet.create({
   datePickerDone: {
     fontSize: 16,
     color: '#FF6B35',
-    fontWeight: '600',
   },
   datePicker: {
     height: 200,

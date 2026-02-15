@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,15 +8,18 @@ import {
   Image,
   ImageBackground,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import { BlurView } from '@react-native-community/blur';
+import { getHomeData } from '../../services/homeService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = 16;
@@ -24,13 +27,67 @@ const PADDING = 20;
 const UPCOMING_CARD_SIZE = SCREEN_WIDTH - PADDING * 2;
 const MERCH_CARD_WIDTH = SCREEN_WIDTH * 0.45;
 
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
+
 const HomeScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const { user } = useAuth();
   const isLoggedIn = !!user;
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [merchItems, setMerchItems] = useState([]);
+  const [popularEvents, setPopularEvents] = useState([]);
+  const [highlights, setHighlights] = useState([]);
+  const [favoritedEventIds, setFavoritedEventIds] = useState([]);
+
   const [upcomingLiked, setUpcomingLiked] = useState({});
   const [popularLiked, setPopularLiked] = useState({});
+
+  const loadHomeData = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await getHomeData();
+      setUpcomingEvents(data.upcomingEvents || []);
+      setMerchItems(data.merchItems || []);
+      setPopularEvents(data.popularEvents || []);
+      setHighlights(data.highlights || []);
+      setFavoritedEventIds(data.favoritedEventIds || []);
+
+      const favMap = {};
+      (data.favoritedEventIds || []).forEach((id) => { favMap[id] = true; });
+      setUpcomingLiked((prev) => ({ ...favMap, ...prev }));
+      setPopularLiked((prev) => ({ ...favMap, ...prev }));
+    } catch (err) {
+      setError(err.message || 'Failed to load home data');
+      setUpcomingEvents([]);
+      setMerchItems([]);
+      setPopularEvents([]);
+      setHighlights([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHomeData();
+  }, [loadHomeData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) loadHomeData();
+    }, [loadHomeData])
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadHomeData();
+  }, [loadHomeData]);
 
   const toggleUpcomingLiked = (eventId) => {
     setUpcomingLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
@@ -39,82 +96,39 @@ const HomeScreen = () => {
     setPopularLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
-  const upcomingEvents = [
-    {
-      id: '1',
-      date: 'AUG 15, 10:00AM',
-      attendees: 54,
-      title: 'kingdom community...',
-      subtitle: 'WORSHIP',
-      stage: 'MAIN STAGE',
-    },
-    {
-      id: '2',
-      date: 'AUG 16, 2:00PM',
-      attendees: 32,
-      title: 'praise & worship',
-      subtitle: 'WORSHIP',
-      stage: 'MAIN STAGE',
-    },
-  ];
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
+      </View>
+    );
+  }
 
-  const merchItems = [
-    {
-      id: '1',
-      tag: 'NEW IN',
-      tagColor: theme.colors.primary,
-      title: 'wave of worship fasti...',
-      price: '29 USD',
-      liked: true,
-      image: require('../../../assets/images/merch1.png'),
-    },
-    {
-      id: '2',
-      tag: 'LIMITED',
-      tagColor: theme.colors.accent,
-      title: 'black cotton t-shirt for such...',
-      price: '35 USD',
-      liked: false,
-      image: require('../../../assets/images/merch2.png'),
-    },
-  ];
-
-  const popularEvents = [
-    { id: '1', date: 'AUG 15, 12:00AM', title: 'kingdom community mee...', liked: true, imageColor: '#E87D2B' },
-    { id: '2', date: 'AUG 15, 6:00PM', title: 'evening of hope', liked: true, imageColor: '#D4A84B' },
-    { id: '3', date: 'AUG 16, 8:00PM', title: 'fasting focus weekend', liked: false, imageColor: '#2D4739' },
-  ];
-
-  const highlights = [
-    {
-      id: '1',
-      name: 'Ashley Lubin',
-      timeAgo: '5h ago',
-      eventName: 'Fasting Focus Weekend',
-      caption: 'So much peace, so much love – grateful to be part of this moment.',
-      likes: 124,
-      comments: 8,
-      liked: true,
-      mediaCount: 3,
-    },
-    {
-      id: '2',
-      name: 'Avery Collins',
-      timeAgo: '10h ago',
-      eventName: 'Kingdom Community Meetup',
-      caption: 'So thankful to worship together. My soul feels lighter.',
-      likes: 16,
-      comments: 4,
-      liked: false,
-      mediaCount: 3,
-    },
-  ];
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => {
+            setLoading(true);
+            loadHomeData();
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
     >
       <SafeAreaView style={styles.safeTop} edges={['top']} />
 
@@ -194,15 +208,25 @@ const HomeScreen = () => {
         >
           {upcomingEvents.map((event) => {
             const liked = upcomingLiked[event.id] ?? false;
+            const eventPayload = {
+              id: event.id,
+              date: event.date,
+              attendees: event.attendees,
+              title: event.title,
+              subtitle: event.subtitle,
+              stage: event.stage,
+              coverColor: event.coverColor,
+              coverImage: event.coverImage,
+            };
             return (
               <TouchableOpacity
                 key={event.id}
                 style={styles.getTicketsCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('Event', { event })}
+                onPress={() => navigation.navigate('Event', { event: eventPayload })}
               >
                 <ImageBackground
-                  source={require('../../../assets/images/cover.png')}
+                  source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
                   style={StyleSheet.absoluteFill}
                   imageStyle={styles.getTicketsCardImageStyle}
                 >
@@ -231,7 +255,7 @@ const HomeScreen = () => {
                     onPress={() =>
                       liked
                         ? navigation.navigate('Schedule', { openMySchedule: true })
-                        : navigation.navigate('GetTicket', { event })
+                        : navigation.navigate('GetTicket', { event: eventPayload })
                     }
                   >
                     <Text style={styles.getTicketBtnText}>
@@ -262,6 +286,7 @@ const HomeScreen = () => {
             const priceParts = (item.price || '0 USD').split(/\s+/);
             const priceNumber = priceParts[0] || '0';
             const priceUnit = priceParts.slice(1).join(' ') || 'USD';
+            const imageSource = item.image ? { uri: item.image } : (item.tag === 'NEW IN' ? require('../../../assets/images/merch1.png') : require('../../../assets/images/merch2.png'));
             return (
               <TouchableOpacity
                 key={item.id}
@@ -270,13 +295,15 @@ const HomeScreen = () => {
               >
                 <View style={styles.merchCardImage}>
                   <Image
-                    source={item.image}
+                    source={imageSource}
                     style={styles.merchCardImageFill}
                     resizeMode="cover"
                   />
-                  <View style={[styles.merchTag, { backgroundColor: item.tagColor }]}>
-                    <Text style={styles.merchTagText}>{item.tag}</Text>
-                  </View>
+                  {item.tag ? (
+                    <View style={[styles.merchTag, { backgroundColor: item.tagColor || theme.colors.primary }]}>
+                      <Text style={styles.merchTagText}>{item.tag}</Text>
+                    </View>
+                  ) : null}
                   <TouchableOpacity style={styles.merchHeart} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                     <Ionicons
                       name={item.liked ? 'heart' : 'heart-outline'}
@@ -339,12 +366,12 @@ const HomeScreen = () => {
               activeOpacity={0.9}
               onPress={() =>
                 navigation.navigate('Event', {
-                  event: { id: event.id, date: event.date, title: event.title },
+                  event: { id: event.id, date: event.date, title: event.title, coverColor: event.imageColor },
                 })
               }
             >
               <Image
-                source={require('../../../assets/images/cover.png')}
+                source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
                 style={styles.nextAppearanceImage}
                 resizeMode="cover"
               />
@@ -397,7 +424,7 @@ const HomeScreen = () => {
             {/* User row */}
             <View style={styles.highlightUserRow}>
               <Image
-                source={require('../../../assets/images/person.png')}
+                source={post.profileImage ? { uri: post.profileImage } : require('../../../assets/images/person.png')}
                 style={styles.highlightAvatar}
                 resizeMode="cover"
               />
@@ -462,6 +489,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2EFEB',
   },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   content: {
     paddingBottom: 40,
   },
@@ -477,8 +529,8 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   homeHeaderName: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '600',
     flex: 1,
     marginRight: 12,
   },
@@ -539,20 +591,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   quickButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 15,
     marginTop: 8,
     textTransform: 'lowercase',
   },
   section3: {
     paddingTop: 24,
     paddingBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    paddingHorizontal: 20,
   },
   eventsScrollContent: {
     paddingHorizontal: PADDING,
@@ -565,6 +610,7 @@ const styles = StyleSheet.create({
   getTicketsTitle: {
     fontSize: 22,
     fontWeight: '700',
+    fontFamily: 'PPAgrandirText-Bold',
     marginVertical: 12,
     paddingHorizontal: PADDING,
   },
@@ -596,8 +642,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   getTicketsDate: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
     color: '#FFF',
   },
   getTicketsAttendees: {
@@ -608,15 +653,14 @@ const styles = StyleSheet.create({
   getTicketsAttendeesText: {
     fontSize: 14,
     color: '#FFF',
-    fontWeight: '600',
     marginLeft: 4,
   },
   getTicketsCardTitle: {
-    fontSize: 44,
-    lineHeight: 40,
+    fontSize: 32,
+    lineHeight: 32,
     fontWeight: 'bold',
     color: '#FFF',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   getTicketsCardSub: {
     fontSize: 12,
@@ -649,7 +693,6 @@ const styles = StyleSheet.create({
   getTicketBtnText: {
     fontSize: 14,
     textAlign: 'center',
-    fontWeight: '600',
     color: '#FFF',
   },
   section4: {
@@ -659,6 +702,7 @@ const styles = StyleSheet.create({
   section4Title: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   section4Header: {
     flexDirection: 'row',
@@ -669,7 +713,6 @@ const styles = StyleSheet.create({
   },
   seeMore: {
     fontSize: 14,
-    fontWeight: '600',
   },
   merchScrollContent: {
     paddingHorizontal: 20,
@@ -702,7 +745,6 @@ const styles = StyleSheet.create({
   },
   merchTagText: {
     fontSize: 10,
-    fontWeight: '700',
     color: '#FFF',
   },
   merchHeart: {
@@ -736,6 +778,7 @@ const styles = StyleSheet.create({
   merchPriceNumber: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   merchPriceUnit: {
     fontSize: 12,
@@ -781,8 +824,8 @@ const styles = StyleSheet.create({
   },
   section5Title: {
     textAlign: 'center',
-    fontSize: 40,
-    lineHeight: 40,
+    fontSize: 30,
+    lineHeight: 30,
     fontWeight: 'bold',
     color: '#FFF',
     marginBottom: 20,
@@ -799,7 +842,6 @@ const styles = StyleSheet.create({
   },
   supportButtonText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   section5Footer: {
     fontSize: 12,
@@ -813,6 +855,7 @@ const styles = StyleSheet.create({
   section6Title: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: 'PPAgrandirText-Bold',
     marginBottom: 12,
   },
   nextAppearanceCard: {
@@ -846,12 +889,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   nextAppearanceDateTime: {
-    fontSize: 13,
+    fontSize: 12,
     marginRight: 8,
   },
   nextAppearanceTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
@@ -870,7 +913,6 @@ const styles = StyleSheet.create({
   },
   seeAllEvents: {
     fontSize: 14,
-    fontWeight: '600',
   },
   seeAllEventsUnderline: {
     height: 2,
@@ -913,6 +955,7 @@ const styles = StyleSheet.create({
   highlightName: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: 'PPAgrandirText-Bold',
     marginRight: 8,
   },
   highlightTime: {
@@ -929,7 +972,6 @@ const styles = StyleSheet.create({
   },
   followButtonText: {
     fontSize: 14,
-    fontWeight: '600',
     color: '#FFF',
   },
   highlightMore: {

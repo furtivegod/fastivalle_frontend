@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 58,
     fontWeight: 'bold',
+    fontFamily: 'PPAgrandirText-Bold',
     color: '#FFFFFF',
     marginBottom: 8,
   },
@@ -182,8 +183,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
   },
   socialButton: {
     flexDirection: 'row',
@@ -222,7 +221,6 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 14,
-    fontWeight: '600',
     color: '#FFFFFF',
     textDecorationLine: 'underline',
     textAlign: 'center',

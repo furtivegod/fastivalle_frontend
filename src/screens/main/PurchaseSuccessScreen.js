@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,28 +7,45 @@ import {
   ImageBackground,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getOrderDetail } from '../../services/orderService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 const BANNER_ASPECT = 16 / 10;
+const DEFAULT_COVER = require('../../../assets/images/cover.png');
 
 const PurchaseSuccessScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
-  const {
-    event = { title: 'christian music festival', date: 'AUG 15, 10:00AM' },
-    category = 'Group',
-    ticketType = 'STANDARD',
-    quantity = 20,
-    orderNumber = '123AXQ-r4556',
-  } = route.params || {};
+  const params = route.params || {};
+  const orderFromParams = params.order;
+  const orderIdFromParams = params.orderId;
+
+  const [order, setOrder] = useState(orderFromParams || null);
+  const [loading, setLoading] = useState(!!orderIdFromParams && !orderFromParams);
+
+  useEffect(() => {
+    if (orderIdFromParams && !orderFromParams) {
+      getOrderDetail(orderIdFromParams)
+        .then(setOrder)
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [orderIdFromParams, orderFromParams]);
+
+  const event = order?.event || params.event || { title: 'christian music festival', date: 'AUG 15, 10:00AM' };
+  const category = order?.category ?? params.category ?? 'Group';
+  const ticketType = order?.ticketType ?? params.ticketType ?? 'STANDARD';
+  const quantity = order?.quantity ?? params.quantity ?? 20;
+  const orderNumber = order?.orderNumber ?? params.orderNumber ?? '123AXQ-r4556';
 
   const handleClose = () => {
     navigation.goBack();
@@ -36,6 +53,26 @@ const PurchaseSuccessScreen = () => {
   const handleCurateLineup = () => {
     navigation.navigate('MainTabs');
   };
+
+  const bannerSource = event?.coverImage
+    ? { uri: typeof event.coverImage === 'string' ? event.coverImage : event.coverImage?.url }
+    : DEFAULT_COVER;
+  const subtitle = event?.subtitle || 'CONCERT';
+  const stage = event?.stage || 'MAIN STAGE';
+
+  if (loading) {
+    return (
+      <ImageBackground
+        source={require('../../../assets/images/splash_bg.png')}
+        style={styles.bgImage}
+        resizeMode="cover"
+      >
+        <View style={[styles.container, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color="#FFF" />
+        </View>
+      </ImageBackground>
+    );
+  }
 
   return (
     <ImageBackground
@@ -66,17 +103,17 @@ const PurchaseSuccessScreen = () => {
           <View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
             <View style={styles.bannerWrap}>
               <ImageBackground
-                source={require('../../../assets/images/cover.png')}
+                source={bannerSource}
                 style={styles.bannerImage}
                 imageStyle={styles.bannerImageStyle}
-                resizeMode='cover'
+                resizeMode="cover"
               >
                 <View style={[StyleSheet.absoluteFill, styles.bannerOverlay]} />
                 <View style={styles.bannerTextWrap}>
                   <Text style={styles.bannerDate}>{event.date}</Text>
                   <Text style={styles.bannerTitle}>{event.title}</Text>
-                  <Text style={styles.bannerMeta}>CONCERT</Text>
-                  <Text style={styles.bannerMeta}>MAIN STAGE</Text>
+                  <Text style={styles.bannerMeta}>{subtitle}</Text>
+                  <Text style={styles.bannerMeta}>{stage}</Text>
                 </View>
               </ImageBackground>
             </View>
@@ -342,6 +379,10 @@ const styles = StyleSheet.create({
   },
   bottomPad: {
     height: 24,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

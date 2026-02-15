@@ -482,7 +482,7 @@ console.log('----', firebaseIdToken)
                         borderColor: emailConfirmPassword.length > 0 && emailPassword !== emailConfirmPassword
                           ? '#E53935'
                           : theme.colors.border,
-                        borderWidth: emailConfirmPassword.length > 0 && emailPassword !== emailConfirmPassword ? 2 : 1,
+                        borderWidth: emailConfirmPassword.length > 0 && emailPassword !== emailConfirmPassword ? 1 : 1,
                       },
                     ]}
                     placeholder="Enter password again"
@@ -638,7 +638,7 @@ console.log('----', firebaseIdToken)
                         borderColor: confirmPassword.length > 0 && password !== confirmPassword
                           ? '#E53935'
                           : theme.colors.border,
-                        borderWidth: confirmPassword.length > 0 && password !== confirmPassword ? 2 : 1,
+                        borderWidth: confirmPassword.length > 0 && password !== confirmPassword ? 1 : 1,
                       },
                     ]}
                     placeholder="Enter password again"
@@ -669,10 +669,6 @@ console.log('----', firebaseIdToken)
                 )}
               </View>
 
-              {/* OTP Info */}
-              <Text style={[styles.otpInfoText, { color: theme.colors.textSecondary }]}>
-                We'll send you a verification code to confirm your phone number
-              </Text>
 
               {/* Sign Up Button */}
               <TouchableOpacity
@@ -688,7 +684,7 @@ console.log('----', firebaseIdToken)
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text style={[styles.signupButtonText, { color: '#FFFFFF' }]}>
-                    Send Verification Code
+                    Sign Up
                   </Text>
                 )}
               </TouchableOpacity>
@@ -757,7 +753,7 @@ console.log('----', firebaseIdToken)
           <Animated.View
             style={[
               styles.modalContent,
-              { backgroundColor: theme.colors.background, transform: [{ translateY: modalSlide }] },
+              { transform: [{ translateY: modalSlide }] },
             ]}
           >
             {/* Modal Handle */}
@@ -819,11 +815,11 @@ console.log('----', firebaseIdToken)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F0',
+    backgroundColor: '#F2EFEB',
   },
   flex: {
     flex: 1,
-    backgroundColor: '#F5F5F0',
+    backgroundColor: '#F2EFEB',
   },
   scrollContent: {
     flexGrow: 1,
@@ -848,6 +844,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   form: {
     width: '100%',
@@ -857,14 +854,15 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
     marginBottom: 8,
+    fontWeight: 'bold',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   phoneInputContainer: {
     borderRadius: 28,
     borderWidth: 1,
     width: '100%',
-    height: 56,
+    height: 44,
   },
   phoneInputTextContainer: {
     borderRadius: 28,
@@ -873,13 +871,13 @@ const styles = StyleSheet.create({
   },
   phoneInputText: {
     fontSize: 16,
-    height: 56,
+    height: 44,
   },
   flagButton: {
     paddingHorizontal: 16,
   },
   input: {
-    height: 56,
+    height: 44,
     borderWidth: 1,
     borderRadius: 28,
     paddingHorizontal: 20,
@@ -932,12 +930,11 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     color: '#E53935',
-    fontWeight: 'bold',
     marginTop: 8,
     paddingLeft: 4,
   },
   signupButton: {
-    height: 56,
+    height: 44,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
@@ -945,7 +942,6 @@ const styles = StyleSheet.create({
   },
   signupButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
   },
   otpInfoText: {
     fontSize: 14,
@@ -954,7 +950,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   otherMethodsButton: {
-    height: 56,
+    height: 44,
     borderRadius: 28,
     borderWidth: 1,
     justifyContent: 'center',
@@ -963,7 +959,6 @@ const styles = StyleSheet.create({
   },
   otherMethodsButtonText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -990,7 +985,6 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 14,
-    fontWeight: '600',
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -1009,11 +1003,12 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    backgroundColor: '#FFF',
   },
   modalHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#F2EFEB',
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 20,
@@ -1022,6 +1017,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 24,
+    fontFamily: 'PPAgrandirText-Bold',
   },
   modalOptions: {
     gap: 12,
@@ -1030,14 +1026,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56,
+    height: 44,
     borderRadius: 28,
-    backgroundColor: '#F5F5F0',
+    backgroundColor: '#F2EFEB',
     gap: 10,
   },
   continueButtonText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   backToPhoneButton: {
     flexDirection: 'row',
@@ -1047,7 +1042,6 @@ const styles = StyleSheet.create({
   },
   backToPhoneText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   optionalLabel: {
     fontWeight: '400',

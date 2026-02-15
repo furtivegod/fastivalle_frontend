@@ -50,6 +50,24 @@
 	<array>
 		<string>Ionicons.ttf</string>
 		<string>Agrandir.ttf</string>
+		<string>PPAgrandir-NarrowRegular.otf</string>
+		<string>PPAgrandir-TightRegular.otf</string>
+		<string>PPAgrandirText-Bold.otf</string>
+		<string>PPAgrandir-WideLight.otf</string>
+		<string>PPAgrandir-ThinItalic.otf</string>
+		<string>PPAgrandir-GrandLight.otf</string>
+		<string>PPAgrandir-Regular.otf</string>
+		<string>PPAgrandir-GrandHeavy.otf</string>
+		<string>PPAgrandir-WideBlackItalic.otf</string>
+		<string>Agrandir-Regular.otf</string>
+		<string>Agrandir-Narrow.otf</string>
+		<string>Agrandir-WideLight.otf</string>
+		<string>Agrandir-Tight.otf</string>
+		<string>Agrandir-GrandHeavy.otf</string>
+		<string>Agrandir-GrandLight.otf</string>
+		<string>Agrandir-ThinItalic.otf</string>
+		<string>Agrandir-WideBlackItalic.otf</string>
+		<string>Agrandir-TextBold.otf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

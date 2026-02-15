@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
+    fontFamily: 'PPAgrandirText-Bold',
   },
   subtitle: {
     fontSize: 16,
     lineHeight: 24,
   },
   phoneText: {
-    fontWeight: '600',
   },
   otpContainer: {
     flexDirection: 'row',
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   verifyButton: {
-    height: 56,
+    height: 44,
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
@@ -268,7 +268,6 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -283,7 +282,6 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    fontWeight: '600',
   },
   resendTimer: {
     fontSize: 14,

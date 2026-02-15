@@ -126,9 +126,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 4,
     fontWeight: '500',
+    fontFamily: 'PPAgrandirText-Bold',
   },
   tabLabelFocused: {
     fontWeight: '600',
+    fontFamily: 'PPAgrandirText-Bold',
   },
 });
 

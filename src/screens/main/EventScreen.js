@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,12 +17,11 @@ import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import { BlurView } from '@react-native-community/blur';
+import { getEventDetail } from '../../services/eventService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
 const HERO_ASPECT = 16 / 10;
-
-const DESCRIPTION_TEXT =
-  "If you can keep your head when all about you are losing theirs and blaming it on you; if you can trust yourself when all men doubt you, but make allowance for their doubting too; if you can wait and not be tired by waiting...";
 
 const ACCESSIBILITY_ITEMS = [
   { key: 'wheelchair', label: 'Wheelchair Accessible', icon: 'accessibility-outline' },
@@ -37,55 +37,18 @@ const SOCIAL_ITEMS = [
   { key: 'spotify', icon: 'logo-spotify' },
 ];
 
-const EVENT_LINEUP = [
-  { date: 'Aug 15', times: [
-    { time: '10:00', items: [
-      { stage: 'R&B MAINSTAGE', artist: 'tauren wells' },
-      { stage: 'FOLK ORANGE', artist: 'rocky & the queen' },
-    ]},
-    { time: '11:00', items: [
-      { stage: 'MARKET GARDEN', artist: 'pop up' },
-    ]},
-  ]},
-  { date: 'Aug 16', times: [
-    { time: '10:00', items: [
-      { stage: 'MAIN STAGE', artist: 'worship collective' },
-    ]},
-  ]},
-];
-
-const ARTISTS = [
-  { id: '1', name: 'Mike Howard', imageColor: '#5C5C5C' },
-  { id: '2', name: 'Annette Smith', imageColor: '#8B7355' },
-  { id: '3', name: 'Andrew Jones', imageColor: '#4A6B8A' },
-];
 const ARTIST_CARD_WIDTH = 140;
 const ARTIST_IMAGE_ASPECT = 1;
 
-const EVENT_ADDRESS = '1234 Sunset Blvd, Los Angeles, CA 90028';
-
 const PartnerLogos = require('../../../assets/logo');
-const PARTNERS = [
-  { id: '1', name: 'Partner 1', logo: PartnerLogos.logo1 },
-  { id: '2', name: 'Partner 2', logo: PartnerLogos.logo2 },
-  { id: '3', name: 'Partner 3', logo: PartnerLogos.logo3 },
-  { id: '4', name: 'Partner 4', logo: PartnerLogos.logo4 },
-  { id: '5', name: 'Partner 5', logo: PartnerLogos.logo5 },
-  { id: '6', name: 'Partner 6', logo: PartnerLogos.logo6 },
-];
-
-const POSTS = [
-  { id: '1', name: 'Sarah M.', timeAgo: '2h ago', text: 'So excited for this event! Can\'t wait to worship together.', avatarColor: '#E87D2B' },
-  { id: '2', name: 'James K.', timeAgo: '5h ago', text: 'Last year was amazing. See you all there!', avatarColor: '#2D4739' },
-  { id: '3', name: 'Emma L.', timeAgo: '1d ago', text: 'Bringing the whole family. So grateful for this community.', avatarColor: '#4A6B8A' },
-];
+const FALLBACK_LOGOS = [PartnerLogos.logo1, PartnerLogos.logo2, PartnerLogos.logo3, PartnerLogos.logo4, PartnerLogos.logo5, PartnerLogos.logo6];
 
 const EventScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
-  const event = route.params?.event || {
-    id: '1',
+  const paramEvent = route.params?.event || {
+    id: '',
     date: 'AUG 15, 10:00AM',
     attendees: 54,
     title: 'Holy Spirit Presence',
@@ -93,14 +56,76 @@ const EventScreen = () => {
     stage: 'MAIN STAGE',
   };
 
+  const [loading, setLoading] = useState(!!paramEvent?.id);
+  const [error, setError] = useState(null);
+  const [eventDetail, setEventDetail] = useState(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(true);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(paramEvent?.liked ?? false);
   const [lineupExpanded, setLineupExpanded] = useState(true);
 
-  const dateDisplay = event.date?.split(',')[0]?.replace('AUG', 'Aug') || 'Aug 15-18';
-  const timeDisplay = event.date?.includes(',') ? event.date.split(',')[1]?.trim() || '10:00 AM' : '10:00 AM';
-  const venueDisplay = event.stage || 'CAMPTOWN';
-  const interestedCount = event.attendees || 64;
+  const event = eventDetail || paramEvent;
+
+  const loadEventData = useCallback(async () => {
+    const id = paramEvent?.id;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setError(null);
+      const data = await getEventDetail(id);
+      setEventDetail(data);
+      setLiked(data.liked ?? false);
+    } catch (err) {
+      setError(err.message || 'Failed to load event');
+    } finally {
+      setLoading(false);
+    }
+  }, [paramEvent?.id]);
+
+  useEffect(() => {
+    loadEventData();
+  }, [loadEventData]);
+
+  const dateDisplay = event.dateDisplay ?? event.date?.split(',')[0]?.replace(/^([A-Z]{3})/, (m) => m.charAt(0) + m.slice(1).toLowerCase()) ?? 'Aug 15-18';
+  const timeDisplay = event.timeDisplay ?? (event.date?.includes(',') ? event.date.split(',')[1]?.trim() : null) ?? event.startTime ?? '10:00 AM';
+  const venueDisplay = event.venue ?? event.stage ?? 'CAMPTOWN';
+  const interestedCount = event.attendees ?? event.attendeesCount ?? 64;
+
+  const lineup = eventDetail?.lineup ?? [];
+  const artists = eventDetail?.artists ?? [];
+  const partners = eventDetail?.partners ?? [];
+  const posts = eventDetail?.posts ?? [];
+  const followerAvatars = eventDetail?.followerAvatars ?? [];
+
+  if (paramEvent?.id && loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading event...</Text>
+      </View>
+    );
+  }
+
+  if (paramEvent?.id && error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnWrap}>
+          <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => { setLoading(true); loadEventData(); }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -116,7 +141,7 @@ const EventScreen = () => {
           {/* View 1: cover.png + empty 40px view */}
           <View style={styles.topSectionView1}>
             <ImageBackground
-              source={require('../../../assets/images/cover.png')}
+              source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
               style={styles.coverImage}
               imageStyle={styles.heroImageStyle}
             />
@@ -150,15 +175,25 @@ const EventScreen = () => {
                 <Text style={styles.heroSubTitle}>INTERESTED IN</Text>
                 <View style={styles.interestedRow}>
                   <View style={styles.avatarRow}>
-                    {[1, 2, 3, 4].map((i) => (
-                      <View key={i} style={[styles.avatar, { marginLeft: i > 1 ? -8 : 0 }]}>
-                        <Image
-                          source={require('../../../assets/images/person.png')}
-                          style={styles.avatarImage}
-                          resizeMode="cover"
-                        />
-                      </View>
-                    ))}
+                    {followerAvatars.length > 0
+                      ? followerAvatars.slice(0, 4).map((u, i) => (
+                          <View key={u.id || i} style={[styles.avatar, { marginLeft: i > 0 ? -8 : 0 }]}>
+                            <Image
+                              source={u.profileImage ? { uri: u.profileImage } : require('../../../assets/images/person.png')}
+                              style={styles.avatarImage}
+                              resizeMode="cover"
+                            />
+                          </View>
+                        ))
+                      : [1, 2, 3, 4].map((i) => (
+                          <View key={i} style={[styles.avatar, { marginLeft: i > 1 ? -8 : 0 }]}>
+                            <Image
+                              source={require('../../../assets/images/person.png')}
+                              style={styles.avatarImage}
+                              resizeMode="cover"
+                            />
+                          </View>
+                        ))}
                     <View style={styles.avatarBadge}>
                       <Text style={styles.avatarBadgeText}>+{interestedCount}</Text>
                     </View>
@@ -211,7 +246,7 @@ const EventScreen = () => {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Description</Text>
           <Text style={[styles.descriptionText, { color: theme.colors.text }]}>
-            {DESCRIPTION_TEXT}
+            {event.description || "If you can keep your head when all about you are losing theirs and blaming it on you; if you can trust yourself when all men doubt you, but make allowance for their doubting too; if you can wait and not be tired by waiting..."}
           </Text>
           <TouchableOpacity
             style={styles.readLessRow}
@@ -273,7 +308,7 @@ const EventScreen = () => {
           >
           <View style={styles.lineupContent}>
             <Text style={styles.lineupTitle}>Event Line Up</Text>
-            {EVENT_LINEUP.map((day) => (
+            {lineup.length > 0 ? lineup.map((day) => (
               <View key={day.date} style={styles.lineupDateBlock}>
                 <Text style={styles.lineupDate}>{day.date}</Text>
                 {day.times.map((slot) => (
@@ -300,7 +335,9 @@ const EventScreen = () => {
                   </View>
                 ))}
               </View>
-            ))}
+            )) : (
+              <Text style={[styles.lineupDate, { opacity: 0.8 }]}>No lineup yet</Text>
+            )}
             <TouchableOpacity
               style={styles.seeLessRow}
               onPress={() => setLineupExpanded(!lineupExpanded)}
@@ -352,14 +389,15 @@ const EventScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.artistsScrollContent}
           >
-            {ARTISTS.map((artist) => (
+            {artists.map((artist) => (
               <TouchableOpacity
                 key={artist.id}
                 style={styles.artistCard}
                 activeOpacity={0.9}
+                onPress={() => navigation.navigate('ArtistDetail', { artist: { id: artist.id, name: artist.name } })}
               >
                 <Image
-                  source={require('../../../assets/images/person.png')}
+                  source={artist.profileImage ? { uri: artist.profileImage } : require('../../../assets/images/person.png')}
                   style={styles.artistImage}
                   resizeMode="cover"
                 />
@@ -376,7 +414,7 @@ const EventScreen = () => {
           <Text style={[styles.blockSectionTitle, { color: theme.colors.text }]}>Address</Text>
           <View style={[styles.addressCard, { backgroundColor: theme.colors.surface }]}>
             <Ionicons name="location-outline" size={22} color={theme.colors.textLink} />
-            <Text style={[styles.addressText, { color: theme.colors.text }]}>{EVENT_ADDRESS}</Text>
+            <Text style={[styles.addressText, { color: theme.colors.text }]}>{event.address || '1234 Sunset Blvd, Los Angeles, CA 90028'}</Text>
           </View>
         </View>
 
@@ -392,15 +430,14 @@ const EventScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* <Text style={[styles.blockSectionTitle, { color: theme.colors.text }]}>Partners</Text> */}
           <View style={styles.partnersRow}>
-            {PARTNERS.map((p) => (
+            {partners.map((p, idx) => (
               <View
                 key={p.id}
                 style={[styles.partnerCard, { backgroundColor: theme.colors.surface }]}
               >
                 <Image
-                  source={p.logo}
+                  source={p.logo ? { uri: p.logo } : FALLBACK_LOGOS[idx % FALLBACK_LOGOS.length]}
                   style={styles.partnerLogoImage}
                   resizeMode="contain"
                 />
@@ -412,29 +449,48 @@ const EventScreen = () => {
         {/* Posts */}
         <View style={[styles.blockSection, styles.postsSection]}>
           <Text style={[styles.blockSectionTitle, { color: theme.colors.text }]}>Posts</Text>
-          <View style={[styles.emptyStateCard, { backgroundColor: theme.colors.surface }]}>
-            <View style={styles.emptyStateIconWrap}>
-              <Image
-                source={require('../../../assets/images/GalleryFavourite.png')}
-                style={styles.postGalleryImage}
-                resizeMode="cover"
-              />
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <View key={post.id} style={[styles.postCard, { backgroundColor: theme.colors.surface }]}>
+                <View style={styles.postHeader}>
+                  <Image
+                    source={post.profileImage ? { uri: post.profileImage } : require('../../../assets/images/person.png')}
+                    style={styles.postAvatar}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.postMeta}>
+                    <Text style={[styles.postName, { color: theme.colors.text }]}>{post.name}</Text>
+                    <Text style={[styles.postTime, { color: theme.colors.textSecondary }]}>{post.timeAgo}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.postText, { color: theme.colors.text }]}>{post.text}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={[styles.emptyStateCard, { backgroundColor: theme.colors.surface }]}>
+              <View style={styles.emptyStateIconWrap}>
+                <Image
+                  source={require('../../../assets/images/GalleryFavourite.png')}
+                  style={styles.postGalleryImage}
+                  resizeMode="cover"
+                />
+              </View>
+              <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>This is still empty</Text>
+              <Text style={[styles.emptyStateDesc, { color: theme.colors.textSecondary }]}>
+                It seems that no one has posted anything yet.
+              </Text>
+              <Text style={[styles.emptyStateDesc, { color: theme.colors.textSecondary }]}>
+                Be the first to share interesting content
+              </Text>
+              <TouchableOpacity
+                style={styles.addPostButton}
+                activeOpacity={0.8}
+                onPress={() => {}}
+              >
+                <Text style={styles.addPostButtonText}>Add Post</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>This is still empty</Text>
-            <Text style={[styles.emptyStateDesc, { color: theme.colors.textSecondary }]}>
-              It seems that no one has posted anything yet.
-            </Text>
-            <Text style={[styles.emptyStateDesc, { color: theme.colors.textSecondary }]}>
-              Be the first to share interesting content
-            </Text>
-            <TouchableOpacity
-              style={styles.addPostButton}
-              activeOpacity={0.8}
-              onPress={() => {}}
-            >
-              <Text style={styles.addPostButtonText}>Add Post</Text>
-            </TouchableOpacity>
-          </View>
+          )}
         </View>
 
         <View style={styles.bottomPad} />
@@ -447,6 +503,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2EFEB',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backBtnWrap: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
   },
   safeTop: {
     position: 'absolute',

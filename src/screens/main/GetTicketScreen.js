@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,14 +11,20 @@ import {
   Pressable,
   Animated,
   Easing,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Text, TextInput } from '../../components';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getEventTicketTypes } from '../../services/eventService';
+import { createOrder } from '../../services/orderService';
+import { getStoredToken } from '../../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
 const BANNER_ASPECT = 16 / 10;
 const TICKET_DESC = 'Ticket includes full event entry, a bottle of water, and a notebook';
 const MAX_GROUP_TICKETS = 25;
@@ -31,50 +37,83 @@ const GetTicketScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const event = route.params?.event || {
-    id: '1',
+  const paramEvent = route.params?.event || {
+    id: '',
     date: 'AUG 15, 10:00AM',
     title: 'christian music festival',
     subtitle: 'WORSHIP',
     stage: 'MAIN STAGE',
     attendees: 54,
   };
+  const event = paramEvent;
 
+  const [loading, setLoading] = useState(!!paramEvent?.id);
+  const [error, setError] = useState(null);
+  const [generalTickets, setGeneralTickets] = useState([]);
+  const [groupTickets, setGroupTickets] = useState([]);
   const [activeTab, setActiveTab] = useState('General');
-  const [quantities, setQuantities] = useState({ standard: 1, fan: 0 });
+  const [quantities, setQuantities] = useState({});
   const [supportExpanded, setSupportExpanded] = useState(false);
   const [supportAmount, setSupportAmount] = useState('50');
   const [groupSheetVisible, setGroupSheetVisible] = useState(false);
   const [selectedGroupTicketId, setSelectedGroupTicketId] = useState(null);
   const [groupTicketCount, setGroupTicketCount] = useState('1');
-  const [groupQuantities, setGroupQuantities] = useState({ standard: 0, fan: 0, vip: 0 });
+  const [groupQuantities, setGroupQuantities] = useState({});
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
 
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const modalSlide = useRef(new Animated.Value(400)).current;
 
-  const tickets = useMemo(
-    () => [
-      { id: 'standard', name: 'standard ticket', price: 20, qtyKey: 'standard', soldOut: false },
-      { id: 'fan', name: 'fan ticket', price: 25, qtyKey: 'fan', soldOut: false },
-      { id: 'vip', name: 'vip ticket', price: 45, soldOut: true },
-    ],
-    []
-  );
+  const loadTicketTypes = useCallback(async () => {
+    const id = paramEvent?.id;
+    if (!id) {
+      setLoading(false);
+      setGeneralTickets([{ id: 'standard', name: 'standard ticket', price: 20, qtyKey: 'standard', soldOut: false }, { id: 'fan', name: 'fan ticket', price: 25, qtyKey: 'fan', soldOut: false }, { id: 'vip', name: 'vip ticket', price: 45, qtyKey: 'vip', soldOut: true }]);
+      setGroupTickets([{ id: 'standard', name: 'standard ticket', price: 20, dotColor: '#9E9E9E' }, { id: 'fan', name: 'fan ticket', price: 25, dotColor: '#2196F3' }, { id: 'vip', name: 'vip ticket', price: 30, dotColor: '#F44336' }]);
+      setQuantities({ standard: 1, fan: 0, vip: 0 });
+      setGroupQuantities({ standard: 0, fan: 0, vip: 0 });
+      return;
+    }
+    try {
+      setError(null);
+      const data = await getEventTicketTypes(id);
+      const gen = data.generalTickets || [];
+      const grp = data.groupTickets || [];
+      setGeneralTickets(gen);
+      setGroupTickets(grp);
+      const qtyInit = {};
+      gen.forEach((t) => { qtyInit[t.qtyKey || t.ticketType] = t.qtyKey === 'standard' ? 1 : 0; });
+      setQuantities(qtyInit);
+      const grpInit = {};
+      grp.forEach((t) => { grpInit[t.ticketType || t.id] = 0; });
+      setGroupQuantities(grpInit);
+    } catch (err) {
+      setError(err.message || 'Failed to load ticket types');
+      setGeneralTickets([{ id: 'standard', name: 'standard ticket', price: 20, qtyKey: 'standard', soldOut: false }, { id: 'fan', name: 'fan ticket', price: 25, qtyKey: 'fan', soldOut: false }, { id: 'vip', name: 'vip ticket', price: 45, qtyKey: 'vip', soldOut: true }]);
+      setGroupTickets([{ id: 'standard', name: 'standard ticket', price: 20, dotColor: '#9E9E9E' }, { id: 'fan', name: 'fan ticket', price: 25, dotColor: '#2196F3' }, { id: 'vip', name: 'vip ticket', price: 30, dotColor: '#F44336' }]);
+      setQuantities({ standard: 1, fan: 0, vip: 0 });
+      setGroupQuantities({ standard: 0, fan: 0, vip: 0 });
+    } finally {
+      setLoading(false);
+    }
+  }, [paramEvent?.id]);
 
-  const groupTickets = useMemo(
-    () => [
-      { id: 'standard', name: 'standard ticket', price: 20, dotColor: '#9E9E9E' },
-      { id: 'fan', name: 'fan ticket', price: 25, dotColor: '#2196F3' },
-      { id: 'vip', name: 'vip ticket', price: 30, dotColor: '#F44336' },
-    ],
-    []
-  );
+  useEffect(() => {
+    loadTicketTypes();
+  }, [loadTicketTypes]);
+
+  const tickets = generalTickets;
 
   const totalUsd = useMemo(() => {
-    return tickets
-      .filter((t) => !t.soldOut && t.qtyKey && quantities[t.qtyKey] > 0)
-      .reduce((sum, t) => sum + t.price * quantities[t.qtyKey], 0);
-  }, [tickets, quantities]);
+    if (activeTab === 'General') {
+      return tickets
+        .filter((t) => !t.soldOut && (t.qtyKey || t.ticketType) && (quantities[t.qtyKey || t.ticketType] || 0) > 0)
+        .reduce((sum, t) => sum + t.price * (quantities[t.qtyKey || t.ticketType] || 0), 0);
+    }
+    return groupTickets
+      .filter((t) => (groupQuantities[t.ticketType || t.id] || 0) > 0)
+      .reduce((sum, t) => sum + t.price * (groupQuantities[t.ticketType || t.id] || 0), 0);
+  }, [activeTab, tickets, groupTickets, quantities, groupQuantities]);
 
   const totalTicketCount = useMemo(() => {
     if (activeTab === 'General') {
@@ -83,16 +122,91 @@ const GetTicketScreen = () => {
     return Object.keys(groupQuantities).reduce((sum, key) => sum + (groupQuantities[key] || 0), 0);
   }, [activeTab, quantities, groupQuantities]);
 
-  const handleApplePay = () => {
-    const orderId = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const orderNum = `${orderId}-r${Math.floor(1000 + Math.random() * 9000)}`;
-    navigation.navigate('PurchaseSuccess', {
-      event,
-      category: activeTab,
-      ticketType: activeTab === 'Group' ? 'STANDARD' : 'GENERAL',
-      quantity: totalTicketCount || 1,
-      orderNumber: orderNum,
-    });
+  const maxGroupForTicket = selectedGroupTicketId
+    ? (groupTickets.find((t) => (t.ticketType || t.id) === selectedGroupTicketId)?.maxForGroup ?? MAX_GROUP_TICKETS)
+    : MAX_GROUP_TICKETS;
+
+  const handleApplePay = async () => {
+    const eventId = paramEvent?.id;
+    const count = totalTicketCount || 1;
+    const amount = totalUsd || 0;
+
+    if (!eventId) {
+      const orderNum = `${Math.random().toString(36).slice(2, 8).toUpperCase()}-r${Math.floor(1000 + Math.random() * 9000)}`;
+      navigation.navigate('PurchaseSuccess', {
+        event,
+        category: activeTab,
+        ticketType: activeTab === 'Group' ? 'STANDARD' : 'GENERAL',
+        quantity: count,
+        orderNumber: orderNum,
+      });
+      return;
+    }
+
+    const token = await getStoredToken();
+    if (!token) {
+      Alert.alert(
+        'Sign In Required',
+        'Please sign in to purchase tickets.',
+        [{ text: 'OK' }, { text: 'Sign In', onPress: () => navigation.navigate('Login') }]
+      );
+      return;
+    }
+
+    const category = activeTab === 'Group' ? 'group' : 'general';
+    const items = [];
+    if (activeTab === 'General') {
+      tickets
+        .filter((t) => !t.soldOut && (t.qtyKey || t.ticketType) && (quantities[t.qtyKey || t.ticketType] || 0) > 0)
+        .forEach((t) => {
+          const qty = quantities[t.qtyKey || t.ticketType] || 0;
+          if (qty > 0) {
+            items.push({
+              ticketTypeId: t.id,
+              quantity: qty,
+              unitPrice: t.price,
+              category: 'general',
+              ticketTypeName: (t.name || t.ticketType || 'STANDARD').toUpperCase(),
+            });
+          }
+        });
+    } else {
+      groupTickets
+        .filter((t) => (groupQuantities[t.ticketType || t.id] || 0) > 0)
+        .forEach((t) => {
+          const qty = groupQuantities[t.ticketType || t.id] || 0;
+          if (qty > 0) {
+            items.push({
+              ticketTypeId: t.id,
+              quantity: qty,
+              unitPrice: t.price,
+              category: 'group',
+              ticketTypeName: (t.name || t.ticketType || 'STANDARD').toUpperCase(),
+            });
+          }
+        });
+    }
+
+    if (items.length === 0) {
+      Alert.alert('No Tickets Selected', 'Please select at least one ticket.');
+      return;
+    }
+
+    setPurchaseLoading(true);
+    try {
+      const order = await createOrder({
+        eventId,
+        items,
+        totalAmount: amount,
+        currency: 'USD',
+        paymentMethod: 'apple_pay',
+      });
+      navigation.navigate('PurchaseSuccess', { order });
+    } catch (err) {
+      Alert.alert('Purchase Failed', err.message || 'Unable to complete purchase. Please try again.');
+    } finally {
+      setPurchaseLoading(false);
+    }
   };
 
   const adjustQty = (key, delta) => {
@@ -114,8 +228,9 @@ const GetTicketScreen = () => {
   };
 
   const openGroupSheet = (ticket) => {
-    setSelectedGroupTicketId(ticket.id);
-    const existing = groupQuantities[ticket.id] || 0;
+    const key = ticket.ticketType || ticket.id;
+    setSelectedGroupTicketId(key);
+    const existing = groupQuantities[key] || 0;
     setGroupTicketCount(existing > 0 ? String(existing) : '1');
     setGroupSheetVisible(true);
   };
@@ -165,11 +280,11 @@ const GetTicketScreen = () => {
     setGroupTicketCount(digits === '' ? '' : digits);
   };
   const selectedGroupTicket = selectedGroupTicketId
-    ? groupTickets.find((t) => t.id === selectedGroupTicketId)
+    ? groupTickets.find((t) => (t.ticketType || t.id) === selectedGroupTicketId)
     : null;
   const groupCountNum = parseInt(groupTicketCount, 10);
   const isGroupCountValid =
-    !isNaN(groupCountNum) && groupCountNum >= 1 && groupCountNum <= MAX_GROUP_TICKETS;
+    !isNaN(groupCountNum) && groupCountNum >= 1 && groupCountNum <= maxGroupForTicket;
   const onGroupDone = () => {
     if (isGroupCountValid && selectedGroupTicketId) {
       setGroupQuantities((prev) => ({ ...prev, [selectedGroupTicketId]: groupCountNum }));
@@ -179,6 +294,44 @@ const GetTicketScreen = () => {
 
   const headerHeight = 48;
   const scrollPaddingTop = insets.top + headerHeight;
+
+  const qtyKey = (t) => t.qtyKey || t.ticketType || t.id;
+
+  if (paramEvent?.id && loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.headerFixed, { paddingTop: insets.top }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+            <Text style={[styles.backText, { color: theme.colors.text }]}>Back</Text>
+          </TouchableOpacity>
+        </View>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading ticket options...</Text>
+      </View>
+    );
+  }
+
+  if (paramEvent?.id && error) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.headerFixed, { paddingTop: insets.top }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+            <Text style={[styles.backText, { color: theme.colors.text }]}>Back</Text>
+          </TouchableOpacity>
+        </View>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryBtn, { backgroundColor: theme.colors.primary }]}
+          onPress={() => { setLoading(true); loadTicketTypes(); }}
+        >
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -205,7 +358,7 @@ const GetTicketScreen = () => {
         <View style={styles.heroCardWrap}>
           <View style={styles.heroCard}>
             <ImageBackground
-              source={require('../../../assets/images/cover.png')}
+              source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
               style={styles.heroCardBg}
               imageStyle={styles.heroCardImageStyle}
             >
@@ -264,7 +417,9 @@ const GetTicketScreen = () => {
         {/* Ticket cards: General (steppers) or Group (Select buttons) */}
         <View style={styles.cardsWrap}>
           {activeTab === 'General' ? (
-            tickets.map((t) => (
+            tickets.map((t) => {
+              const key = qtyKey(t);
+              return (
               <View
                 key={t.id}
                 style={[styles.ticketCard, { backgroundColor: theme.colors.surface }]}
@@ -272,11 +427,11 @@ const GetTicketScreen = () => {
                 <Text style={[styles.ticketName, { color: theme.colors.text }]}>{t.name}</Text>
                 <View style={styles.ticketLine} />
                 <Text style={[styles.ticketDesc, { color: theme.colors.textSecondary }]}>
-                  {TICKET_DESC}
+                  {t.description || TICKET_DESC}
                 </Text>
                 <View style={styles.ticketBottom}>
                   <Text style={[styles.ticketPrice, { color: theme.colors.text }]}>
-                    <Text style={styles.ticketPriceNum}>{t.price}</Text> USD
+                    <Text style={styles.ticketPriceNum}>{t.price}</Text> {t.currency || 'USD'}
                   </Text>
                   {t.soldOut ? (
                     <View style={[styles.soldOutBadge, { backgroundColor: theme.colors.error }]}>
@@ -287,27 +442,21 @@ const GetTicketScreen = () => {
                       <TouchableOpacity
                         style={[
                           styles.stepperBtn,
-                          quantities[t.qtyKey] === 0 && styles.stepperBtnDisabled,
+                          (quantities[key] || 0) === 0 && styles.stepperBtnDisabled,
                         ]}
-                        onPress={() => adjustQty(t.qtyKey, -1)}
-                        disabled={quantities[t.qtyKey] === 0}
+                        onPress={() => adjustQty(key, -1)}
+                        disabled={(quantities[key] || 0) === 0}
                       >
                         <Ionicons
                           name="remove"
                           size={20}
-                          color={
-                            quantities[t.qtyKey] === 0
-                              ? '#9E9E9E'
-                              : '#1a1a1a'
-                          }
+                          color={(quantities[key] || 0) === 0 ? '#9E9E9E' : '#1a1a1a'}
                         />
                       </TouchableOpacity>
-                      <Text style={styles.stepperQty}>
-                        {quantities[t.qtyKey] ?? 0}
-                      </Text>
+                      <Text style={styles.stepperQty}>{quantities[key] ?? 0}</Text>
                       <TouchableOpacity
                         style={styles.stepperBtn}
-                        onPress={() => adjustQty(t.qtyKey, 1)}
+                        onPress={() => adjustQty(key, 1)}
                       >
                         <Ionicons name="add" size={20} color="#1a1a1a" />
                       </TouchableOpacity>
@@ -315,16 +464,20 @@ const GetTicketScreen = () => {
                   )}
                 </View>
               </View>
-            ))
+              );
+            })
           ) : (
-            groupTickets.map((t) => (
+            groupTickets.map((t) => {
+              const key = t.ticketType || t.id;
+              const qty = groupQuantities[key] || 0;
+              return (
               <View
                 key={t.id}
                 style={[styles.ticketCard, styles.groupTicketCard, { backgroundColor: theme.colors.surface }]}
               >
                 <View style={styles.groupTicketHeader}>
                   <View style={styles.groupTicketHeaderLeft}>
-                    <View style={styles.groupTicketDot} />
+                    <View style={[styles.groupTicketDot, { backgroundColor: t.dotColor || '#808080' }]} />
                     <Text style={[styles.groupTicketName, { color: theme.colors.text }]}>
                       {t.name}
                     </Text>
@@ -334,24 +487,23 @@ const GetTicketScreen = () => {
                       {t.price}
                     </Text>
                     <Text style={[styles.groupTicketPriceSuffix, { color: theme.colors.textSecondary }]}>
-                      {' '}
-                      USD /person
+                      {' '}{t.currency || 'USD'} /person
                     </Text>
                   </View>
                 </View>
                 <View style={styles.groupTicketSeparator} />
                 <Text style={[styles.groupTicketDesc, { color: theme.colors.textSecondary }]}>
-                  {TICKET_DESC}
+                  {t.description || TICKET_DESC}
                 </Text>
                 <TouchableOpacity
                   style={[styles.groupSelectButton, { backgroundColor: theme.colors.text }]}
                   activeOpacity={0.8}
                   onPress={() => openGroupSheet(t)}
                 >
-                  {groupQuantities[t.id] > 0 ? (
+                  {qty > 0 ? (
                     <View style={styles.selectButtonContent}>
                       <Text style={styles.groupSelectButtonText}>
-                        {groupQuantities[t.id]} tickets for {groupQuantities[t.id] * t.price} USD
+                        {qty} tickets for {qty * t.price} {t.currency || 'USD'}
                       </Text>
                       <Ionicons name="pencil" size={16} color="#FFF" style={styles.selectButtonIcon} />
                     </View>
@@ -360,7 +512,8 @@ const GetTicketScreen = () => {
                   )}
                 </TouchableOpacity>
               </View>
-            ))
+              );
+            })
           )}
         </View>
 
@@ -483,12 +636,22 @@ const GetTicketScreen = () => {
               </Text>
             </View>
             <TouchableOpacity
-              style={[styles.applePayBtn, { backgroundColor: theme.colors.text }]}
+              style={[
+                styles.applePayBtn,
+                { backgroundColor: theme.colors.text, opacity: purchaseLoading ? 0.7 : 1 },
+              ]}
               activeOpacity={0.8}
               onPress={handleApplePay}
+              disabled={purchaseLoading}
             >
-              <Ionicons name="logo-apple" size={22} color="#FFF" />
-              <Text style={styles.applePayText}>Pay With Apple Pay</Text>
+              {purchaseLoading ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <Ionicons name="logo-apple" size={22} color="#FFF" />
+                  <Text style={styles.applePayText}>Pay With Apple Pay</Text>
+                </>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.payOtherWrap} activeOpacity={0.8}>
               <Text
@@ -551,11 +714,11 @@ const GetTicketScreen = () => {
                   keyboardType="number-pad"
                   maxLength={4}
                 />
-                {!isNaN(groupCountNum) && groupCountNum > MAX_GROUP_TICKETS && (
+                {!isNaN(groupCountNum) && groupCountNum > maxGroupForTicket && (
                   <View style={styles.groupSheetErrorRow}>
                     <Ionicons name="information-circle" size={20} color={theme.colors.error} />
                     <Text style={[styles.groupSheetErrorText, { color: theme.colors.error }]}>
-                      You can buy maximum {MAX_GROUP_TICKETS} general tickets
+                      You can buy maximum {maxGroupForTicket} tickets
                     </Text>
                   </View>
                 )}
@@ -1113,6 +1276,32 @@ const styles = StyleSheet.create({
   },
   groupSheetDoneText: {
     fontSize: 17,
+    fontWeight: '600',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

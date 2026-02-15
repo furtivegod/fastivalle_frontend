@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -12,78 +12,23 @@ import {
   Pressable,
   Animated,
   Easing,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getScheduleData } from '../../services/scheduleService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING = 20;
 const SCHEDULE_MODAL_HEIGHT = SCREEN_HEIGHT * 0.85;
 const CARD_PADDING = 14;
 const THUMB_SIZE = 72;
-
-// Events grouped by month; first in MARCH is featured (gradient card)
-const EVENTS_BY_MONTH = {
-  MARCH: [
-    {
-      id: '1',
-      date: 'MAR 5, 12:00AM',
-      title: 'fastivalle',
-      actionText: 'Curate My LineUp',
-      imageColor: '#E8A84B',
-      featured: true,
-      liked: true,
-    },
-    {
-      id: '2',
-      date: 'MAR 13, 12AM',
-      title: 'kingdom community mee...',
-      actionText: 'View Schedule',
-      imageColor: '#2D4739',
-      liked: false,
-    },
-    {
-      id: '3',
-      date: 'MAR 15, 6PM',
-      title: 'evening worship',
-      actionText: 'View Schedule',
-      imageColor: '#D4A84B',
-      liked: false,
-    },
-  ],
-  AUGUST: [
-    {
-      id: '4',
-      date: 'AUG 13, 12AM',
-      title: 'youth revival',
-      actionText: 'View Schedule',
-      imageColor: '#E87D2B',
-      liked: false,
-    },
-  ],
-};
-
-const initialLiked = () => {
-  const out = {};
-  Object.values(EVENTS_BY_MONTH).forEach((events) => {
-    events.forEach((e) => { out[e.id] = !!e.liked; });
-  });
-  return out;
-};
-
-const GET_TICKETS_EVENT = {
-  id: 'get-tickets',
-  date: 'AUG 15, 10:00AM',
-  attendees: 54,
-  title: 'kingdom community meetup',
-  subtitle: 'WORSHIP',
-  stage: 'MAIN STAGE',
-};
-
-const SCHEDULE_STAGES = ['Main Stage', 'Garden', 'Orange Stage', 'Stage 4'];
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
+const DEFAULT_COVER_IMAGE_2 = require('../../../assets/images/cover2.png');
 
 const FILTER_MUSIC_TYPES = ['Pop', 'Rap', 'R&B', 'CCM', 'Folk', 'Metal', 'EDM', 'Country', 'DJ'];
 const FILTER_STAGES = ['Main Stage', 'Garden', 'Green Stage', 'Orange Stage', 'Small Room'];
@@ -94,17 +39,18 @@ const FILTER_ACCESSIBILITY = [
   { key: 'animals', label: 'Animals Allowed', icon: 'paw-outline' },
 ];
 
-const SCHEDULE_SLOTS = [
-  { time: '10:00', items: [{ stage: 'R&B MAINSTAGE', artist: 'tauren wells', added: true }] },
-  { time: '11:00', items: [{ stage: 'CCM GARDEN', artist: 'heart & soul', added: false }] },
-  { time: '12:00', items: [{ stage: 'FOLK ORANGE', artist: 'rocky & the queen', added: false }] },
-];
-
 const ScheduleScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('All Events');
-  const [likedCards, setLikedCards] = useState(initialLiked);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+  const [eventsByMonth, setEventsByMonth] = useState({});
+  const [favoritedEventIds, setFavoritedEventIds] = useState([]);
+  const [eventSessions, setEventSessions] = useState({});
+  const [recommendedEvent, setRecommendedEvent] = useState(null);
+  const [likedCards, setLikedCards] = useState({});
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [selectedScheduleEvent, setSelectedScheduleEvent] = useState(null);
   const [scheduleModalMode, setScheduleModalMode] = useState('schedule');
@@ -116,6 +62,44 @@ const ScheduleScreen = () => {
 
   const scheduleOverlayOpacity = useRef(new Animated.Value(0)).current;
   const scheduleModalSlide = useRef(new Animated.Value(400)).current;
+
+  const loadScheduleData = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await getScheduleData();
+      setEventsByMonth(data.eventsByMonth || {});
+      setEventSessions(data.eventSessions || {});
+      setRecommendedEvent(data.recommendedEvent || null);
+      const favIds = data.favoritedEventIds || [];
+      setFavoritedEventIds(favIds);
+      const favMap = {};
+      favIds.forEach((id) => { favMap[id] = true; });
+      setLikedCards((prev) => ({ ...favMap, ...prev }));
+    } catch (err) {
+      setError(err.message || 'Failed to load schedule');
+      setEventsByMonth({});
+      setEventSessions({});
+      setRecommendedEvent(null);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadScheduleData();
+  }, [loadScheduleData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadScheduleData();
+    }, [loadScheduleData])
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadScheduleData();
+  }, [loadScheduleData]);
 
   useEffect(() => {
     if (scheduleModalVisible) {
@@ -181,21 +165,69 @@ const ScheduleScreen = () => {
     setFilterAccessibility([]);
   };
 
-  const months = Object.keys(EVENTS_BY_MONTH);
+  const months = Object.keys(eventsByMonth);
   const isFeatured = (event) => !!event.featured;
-  const isLiked = (id) => likedCards[id];
+  const isLiked = (id) => likedCards[id] ?? false;
   const toggleLiked = (id, e) => {
     if (e && e.stopPropagation) e.stopPropagation();
     setLikedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const likedEventsByMonth = Object.entries(EVENTS_BY_MONTH).reduce((acc, [month, events]) => {
+  const likedEventsByMonth = Object.entries(eventsByMonth).reduce((acc, [month, events]) => {
     const liked = events.filter((e) => likedCards[e.id]);
     if (liked.length > 0) acc[month] = liked;
     return acc;
   }, {});
   const likedMonthKeys = Object.keys(likedEventsByMonth);
   const hasLikedEvents = likedMonthKeys.length > 0;
+
+  // Schedule modal: sessions for selected event, grouped by startTime
+  const selectedEventSessions = selectedScheduleEvent ? (eventSessions[selectedScheduleEvent.id] || []) : [];
+  const scheduleStages = [...new Set(selectedEventSessions.map((s) => s.stage))];
+  const scheduleSlotsByTime = selectedEventSessions.reduce((acc, s) => {
+    const t = s.startTime || '00:00';
+    if (!acc[t]) acc[t] = [];
+    acc[t].push({ stage: s.stage, artist: s.artist, added: s.added });
+    return acc;
+  }, {});
+  const scheduleSlots = Object.entries(scheduleSlotsByTime)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([time, items]) => ({ time, items }));
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading schedule...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => { setLoading(true); loadScheduleData(); }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const getTicketsEvent = recommendedEvent || {
+    id: '',
+    date: '',
+    attendees: 0,
+    title: 'Get Tickets',
+    subtitle: '',
+    stage: '',
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -251,6 +283,9 @@ const ScheduleScreen = () => {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
+        }
       >
         {activeTab === 'My Events' && !hasLikedEvents ? (
           <>
@@ -268,43 +303,45 @@ const ScheduleScreen = () => {
               </Text>
             </View>
 
-            <View style={styles.getTicketsSection}>
-              <Text style={[styles.getTicketsTitle, { color: theme.colors.text }]}>Get Tickets For More Moments</Text>
-              <TouchableOpacity
-                style={styles.getTicketsCard}
-                activeOpacity={0.9}
-                onPress={() => navigation.navigate('Event', { event: GET_TICKETS_EVENT })}
-              >
-                <ImageBackground
-                  source={require('../../../assets/images/cover.png')}
-                  style={StyleSheet.absoluteFill}
-                  imageStyle={styles.getTicketsCardImageStyle}
+            {getTicketsEvent.id ? (
+              <View style={styles.getTicketsSection}>
+                <Text style={[styles.getTicketsTitle, { color: theme.colors.text }]}>Get Tickets For More Moments</Text>
+                <TouchableOpacity
+                  style={styles.getTicketsCard}
+                  activeOpacity={0.9}
+                  onPress={() => navigation.navigate('Event', { event: getTicketsEvent })}
                 >
-                  <View style={styles.getTicketsCardOverlay} />
-                </ImageBackground>
-                <View style={styles.getTicketsCardTop}>
-                  <Text style={styles.getTicketsDate}>{GET_TICKETS_EVENT.date}</Text>
-                  <View style={styles.getTicketsAttendees}>
-                    <Ionicons name="people" size={14} color="#FFF" />
-                    <Text style={styles.getTicketsAttendeesText}>{GET_TICKETS_EVENT.attendees}</Text>
-                  </View>
-                </View>
-                <Text style={styles.getTicketsCardTitle}>{GET_TICKETS_EVENT.title}</Text>
-                <Text style={styles.getTicketsCardSub}>{GET_TICKETS_EVENT.subtitle}</Text>
-                <Text style={styles.getTicketsCardStage}>{GET_TICKETS_EVENT.stage}</Text>
-                <View style={styles.getTicketsCardActions}>
-                  <TouchableOpacity style={styles.getTicketsHeart} hitSlop={12}>
-                    <Ionicons name="heart-outline" size={24} color="#FFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
-                    onPress={() => navigation.navigate('GetTicket', { event: GET_TICKETS_EVENT })}
+                  <ImageBackground
+                    source={getTicketsEvent.coverImage ? { uri: getTicketsEvent.coverImage } : DEFAULT_COVER_IMAGE}
+                    style={StyleSheet.absoluteFill}
+                    imageStyle={styles.getTicketsCardImageStyle}
                   >
-                    <Text style={styles.getTicketBtnText}>Get Ticket</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            </View>
+                    <View style={styles.getTicketsCardOverlay} />
+                  </ImageBackground>
+                  <View style={styles.getTicketsCardTop}>
+                    <Text style={styles.getTicketsDate}>{getTicketsEvent.date}</Text>
+                    <View style={styles.getTicketsAttendees}>
+                      <Ionicons name="people" size={14} color="#FFF" />
+                      <Text style={styles.getTicketsAttendeesText}>{getTicketsEvent.attendees}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.getTicketsCardTitle}>{getTicketsEvent.title}</Text>
+                  <Text style={styles.getTicketsCardSub}>{getTicketsEvent.subtitle}</Text>
+                  <Text style={styles.getTicketsCardStage}>{getTicketsEvent.stage}</Text>
+                  <View style={styles.getTicketsCardActions}>
+                    <TouchableOpacity style={styles.getTicketsHeart} hitSlop={12}>
+                      <Ionicons name="heart-outline" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
+                      onPress={() => navigation.navigate('GetTicket', { event: getTicketsEvent })}
+                    >
+                      <Text style={styles.getTicketBtnText}>Get Ticket</Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </>
         ) : (
         (activeTab === 'All Events' ? months : likedMonthKeys).map((month) => (
@@ -314,7 +351,7 @@ const ScheduleScreen = () => {
             >
               {month}
             </Text>
-            {(activeTab === 'All Events' ? EVENTS_BY_MONTH[month] || [] : likedEventsByMonth[month] || []).map((event) => {
+            {(activeTab === 'All Events' ? eventsByMonth[month] || [] : likedEventsByMonth[month] || []).map((event) => {
               const featured = isFeatured(event);
               const liked = isLiked(event.id);
               const useImageBg = featured;
@@ -327,7 +364,7 @@ const ScheduleScreen = () => {
               const cardContent = (
                 <>
                   <Image
-                    source={require('../../../assets/images/cover.png')}
+                    source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
                     style={styles.thumb}
                     resizeMode="cover"
                   />
@@ -402,7 +439,7 @@ const ScheduleScreen = () => {
                   {useImageBg ? (
                     <>
                       <ImageBackground
-                        source={require('../../../assets/images/cover2.png')}
+                        source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE_2}
                         style={styles.eventCardBgImage}
                         imageStyle={styles.eventCardBgImageStyle}
                       >
@@ -513,9 +550,9 @@ const ScheduleScreen = () => {
               <Text style={styles.scheduleModalLargeTitle}>Add Event to Your LineUp</Text>
             ) : (
               <View style={styles.scheduleModalSection1}>
-                <View style={[styles.scheduleThumb, { backgroundColor: '#E8A84B' }]}>
+                <View style={[styles.scheduleThumb, { backgroundColor: selectedScheduleEvent?.imageColor || '#E8A84B' }]}>
                   <Image
-                    source={require('../../../assets/images/cover2.png')}
+                    source={selectedScheduleEvent?.coverImage ? { uri: selectedScheduleEvent.coverImage } : DEFAULT_COVER_IMAGE_2}
                     style={styles.scheduleThumbImage}
                     resizeMode="cover"
                   />
@@ -544,7 +581,7 @@ const ScheduleScreen = () => {
               >
                 <Ionicons name="menu" size={20} color={theme.colors.text} />
               </TouchableOpacity>
-              {SCHEDULE_STAGES.map((stage, index) => (
+              {scheduleStages.length > 0 ? scheduleStages.map((stage, index) => (
                 <TouchableOpacity
                   key={stage}
                   style={[
@@ -562,7 +599,7 @@ const ScheduleScreen = () => {
                     {stage}
                   </Text>
                 </TouchableOpacity>
-              ))}
+              )) : null}
             </ScrollView>
 
             {/* Section 3: Vertical scroll - time markers + event cards (match image) */}
@@ -571,7 +608,7 @@ const ScheduleScreen = () => {
               contentContainerStyle={styles.scheduleListContent}
               showsVerticalScrollIndicator={true}
             >
-              {SCHEDULE_SLOTS.map((slot) => (
+              {scheduleSlots.map((slot) => (
                 <View key={slot.time} style={styles.scheduleSlotRow}>
                   <Text style={styles.scheduleTimeMarker}>{slot.time}</Text>
                   <View style={styles.scheduleSlotCards}>
@@ -621,12 +658,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   safeTop: {
     marginBottom: 40,
   },
   screenTitle: {
     fontSize: 28,
     fontWeight: '700',
+    letterSpacing: 0,
+    fontFamily: 'PPAgrandirText-Bold',
     marginLeft: PADDING,
     marginBottom: 16,
   },
@@ -883,8 +947,8 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 18,
-    fontWeight: '700',
     marginBottom: 2,
+    fontWeight: '700',
   },
   eventAction: {
     fontSize: 13,

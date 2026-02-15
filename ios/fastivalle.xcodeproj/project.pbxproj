@@ -9,15 +9,34 @@
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* fastivalleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* fastivalleTests.m */; };
 		038D85A4399E5679FCCB5770 /* Pods_fastivalle_fastivalleTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9FD8D3425DB5C649181E05C /* Pods_fastivalle_fastivalleTests.framework */; };
+		12294D4AC19247FABD8E89CC /* PPAgrandir-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 295EDDF540244C2DAF2C2351 /* PPAgrandir-Regular.otf */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		684DED6F5565480C84A63805 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 064F472E0AF04B6389A4FCD7 /* README.md */; };
+		5FF842DA24A244B3BBEF541B /* PPAgrandir-NarrowRegular.otf in Resources */ = {isa = PBXBuildFile; fileRef = DCBCC04666AA4664BA4AEDC7 /* PPAgrandir-NarrowRegular.otf */; };
+		6FC152F44EA742A3B99ED7CD /* PPAgrandir-TightRegular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3D6CC48626246BFB1BEB386 /* PPAgrandir-TightRegular.otf */; };
 		764EC649965E4356C8AE467F /* Pods_fastivalle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 319E0115AF32356339E18887 /* Pods_fastivalle.framework */; };
+		76A8957BE7704BCBBDDD8B5A /* PPAgrandir-GrandLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1CDC784FEF514634AD50FDBA /* PPAgrandir-GrandLight.otf */; };
+		7DED9CDAC40148E3BDCD4EC8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4921C9453E7B4F6AB1F553EA /* README.md */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		ACDED72B7CB3819D04CD31A0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 15D63FE665EB0EF0EDD3F137 /* PrivacyInfo.xcprivacy */; };
 		D316CF831FBF45A29E6AE91F /* Agrandir.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DCBEF0CA45A046E2A8739179 /* Agrandir.ttf */; };
+		EF9AA3DD461D4379BC04A3DD /* PPAgrandir-WideLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = D8B9C7C4301140A189AFCC95 /* PPAgrandir-WideLight.otf */; };
+		EFF45CE4677B487EABCC2AF3 /* PPAgrandir-ThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = F8F63FEEAD3E4B0EBFFDA11C /* PPAgrandir-ThinItalic.otf */; };
+		FA0A529B2F3FC9B500FD0CBA /* PPAgrandir-GrandHeavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = FA0A529A2F3FC9B500FD0CBA /* PPAgrandir-GrandHeavy.otf */; };
+		FA0A529E2F3FCACE00FD0CBA /* PPAgrandirText-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = FA0A529D2F3FCACE00FD0CBA /* PPAgrandirText-Bold.otf */; };
 		FAF0E5F62F368D77004037E9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FAF0E5F52F368D76004037E9 /* GoogleService-Info.plist */; };
+		FEDBB1F66A644376B5DD7C03 /* PPAgrandir-WideBlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = ACDEC402CC434C0C93901B04 /* PPAgrandir-WideBlackItalic.otf */; };
+		935207161C704D2B9314A6BE /* Agrandir-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8CC211110184FF0A024584F /* Agrandir-Regular.otf */; };
+		D2242A8534A642F693DB4932 /* Agrandir-Narrow.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0D2E681BC6BE4595BAC3535C /* Agrandir-Narrow.otf */; };
+		AEC03B291EC24C7C83744F83 /* Agrandir-WideLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0384243346624333A3A7692F /* Agrandir-WideLight.otf */; };
+		4C979DEF962D4C7EB1E2A5EA /* Agrandir-Tight.otf in Resources */ = {isa = PBXBuildFile; fileRef = E79403A8E3594B0F9EFE342B /* Agrandir-Tight.otf */; };
+		86370F3464A14707A731CAF2 /* Agrandir-GrandHeavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3C6B1F19EA284F9B922BED5F /* Agrandir-GrandHeavy.otf */; };
+		C94E537D02A145029EF9C5EB /* Agrandir-GrandLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 96E1FF8C76874851A379D8DD /* Agrandir-GrandLight.otf */; };
+		C99A3CE54A4D48949AC773A0 /* Agrandir-ThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6E5FF44754B84AA7993946A0 /* Agrandir-ThinItalic.otf */; };
+		57F8BD6174DE417B8248CA82 /* Agrandir-WideBlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = F86C3AFD289F4CDF98BF6477 /* Agrandir-WideBlackItalic.otf */; };
+		37614680354A48788061080B /* Agrandir-TextBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = CAF2D2D74D424A3C86E85D47 /* Agrandir-TextBold.otf */; };
+		D7D547EA893244C8A5DAD1CB /* Personal-license-agreement in Resources */ = {isa = PBXBuildFile; fileRef = FEA28D0D46CC465B928A3728 /* Personal-license-agreement */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,7 +53,7 @@
 		00E356EE1AD99517003FC87E /* fastivalleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fastivalleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* fastivalleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = fastivalleTests.m; sourceTree = "<group>"; };
-		064F472E0AF04B6389A4FCD7 /* README.md */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = README.md; path = ../assets/fonts/README.md; sourceTree = "<group>"; };
+		108B3E439B404529AC94393B /* PPAgrandirText-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandirText-Bold.otf"; path = "../assets/fonts/PPAgrandirText-Bold.otf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* fastivalle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fastivalle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = fastivalle/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = fastivalle/AppDelegate.mm; sourceTree = "<group>"; };
@@ -44,16 +63,38 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = fastivalle/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07FED1A68109900A75B9A /* fastivalle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = fastivalle.entitlements; path = fastivalle/fastivalle.entitlements; sourceTree = "<group>"; };
 		15D63FE665EB0EF0EDD3F137 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = fastivalle/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1CDC784FEF514634AD50FDBA /* PPAgrandir-GrandLight.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-GrandLight.otf"; path = "../assets/fonts/PPAgrandir-GrandLight.otf"; sourceTree = "<group>"; };
+		295EDDF540244C2DAF2C2351 /* PPAgrandir-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-Regular.otf"; path = "../assets/fonts/PPAgrandir-Regular.otf"; sourceTree = "<group>"; };
 		319E0115AF32356339E18887 /* Pods_fastivalle.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fastivalle.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4392A12AC88292D35C810B /* Pods-fastivalle.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fastivalle.debug.xcconfig"; path = "Target Support Files/Pods-fastivalle/Pods-fastivalle.debug.xcconfig"; sourceTree = "<group>"; };
+		4921C9453E7B4F6AB1F553EA /* README.md */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = README.md; path = ../assets/fonts/README.md; sourceTree = "<group>"; };
+		5431735A72F64B9EAF78164A /* PPAgrandir-GrandHeavy.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-GrandHeavy.otf"; path = "../assets/fonts/PPAgrandir-GrandHeavy.otf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-fastivalle.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fastivalle.release.xcconfig"; path = "Target Support Files/Pods-fastivalle/Pods-fastivalle.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-fastivalle-fastivalleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fastivalle-fastivalleTests.debug.xcconfig"; path = "Target Support Files/Pods-fastivalle-fastivalleTests/Pods-fastivalle-fastivalleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = fastivalle/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-fastivalle-fastivalleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fastivalle-fastivalleTests.release.xcconfig"; path = "Target Support Files/Pods-fastivalle-fastivalleTests/Pods-fastivalle-fastivalleTests.release.xcconfig"; sourceTree = "<group>"; };
+		ACDEC402CC434C0C93901B04 /* PPAgrandir-WideBlackItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-WideBlackItalic.otf"; path = "../assets/fonts/PPAgrandir-WideBlackItalic.otf"; sourceTree = "<group>"; };
 		B9FD8D3425DB5C649181E05C /* Pods_fastivalle_fastivalleTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fastivalle_fastivalleTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		DCBEF0CA45A046E2A8739179 /* Agrandir.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = Agrandir.ttf; path = ../assets/fonts/Agrandir.ttf; sourceTree = "<group>"; };
+		D8B9C7C4301140A189AFCC95 /* PPAgrandir-WideLight.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-WideLight.otf"; path = "../assets/fonts/PPAgrandir-WideLight.otf"; sourceTree = "<group>"; };
+		DCBCC04666AA4664BA4AEDC7 /* PPAgrandir-NarrowRegular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-NarrowRegular.otf"; path = "../assets/fonts/PPAgrandir-NarrowRegular.otf"; sourceTree = "<group>"; };
+		DCBEF0CA45A046E2A8739179 /* Agrandir.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Agrandir.ttf; path = ../assets/fonts/Agrandir.ttf; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F3D6CC48626246BFB1BEB386 /* PPAgrandir-TightRegular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-TightRegular.otf"; path = "../assets/fonts/PPAgrandir-TightRegular.otf"; sourceTree = "<group>"; };
+		F8F63FEEAD3E4B0EBFFDA11C /* PPAgrandir-ThinItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PPAgrandir-ThinItalic.otf"; path = "../assets/fonts/PPAgrandir-ThinItalic.otf"; sourceTree = "<group>"; };
+		FA0A529A2F3FC9B500FD0CBA /* PPAgrandir-GrandHeavy.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PPAgrandir-GrandHeavy.otf"; path = "../assets/fonts/PPAgrandir-GrandHeavy.otf"; sourceTree = "<group>"; };
+		FA0A529C2F3FCACD00FD0CBA /* PPAgrandir-GrandHeavy.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PPAgrandir-GrandHeavy.otf"; path = "../assets/fonts/PPAgrandir-GrandHeavy.otf"; sourceTree = "<group>"; };
+		FA0A529D2F3FCACE00FD0CBA /* PPAgrandirText-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PPAgrandirText-Bold.otf"; path = "../assets/fonts/PPAgrandirText-Bold.otf"; sourceTree = "<group>"; };
 		FAF0E5F52F368D76004037E9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "fastivalle/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A8CC211110184FF0A024584F /* Agrandir-Regular.otf */ = {isa = PBXFileReference; name = "Agrandir-Regular.otf"; path = "../assets/fonts/Agrandir-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0D2E681BC6BE4595BAC3535C /* Agrandir-Narrow.otf */ = {isa = PBXFileReference; name = "Agrandir-Narrow.otf"; path = "../assets/fonts/Agrandir-Narrow.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0384243346624333A3A7692F /* Agrandir-WideLight.otf */ = {isa = PBXFileReference; name = "Agrandir-WideLight.otf"; path = "../assets/fonts/Agrandir-WideLight.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E79403A8E3594B0F9EFE342B /* Agrandir-Tight.otf */ = {isa = PBXFileReference; name = "Agrandir-Tight.otf"; path = "../assets/fonts/Agrandir-Tight.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3C6B1F19EA284F9B922BED5F /* Agrandir-GrandHeavy.otf */ = {isa = PBXFileReference; name = "Agrandir-GrandHeavy.otf"; path = "../assets/fonts/Agrandir-GrandHeavy.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		96E1FF8C76874851A379D8DD /* Agrandir-GrandLight.otf */ = {isa = PBXFileReference; name = "Agrandir-GrandLight.otf"; path = "../assets/fonts/Agrandir-GrandLight.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		6E5FF44754B84AA7993946A0 /* Agrandir-ThinItalic.otf */ = {isa = PBXFileReference; name = "Agrandir-ThinItalic.otf"; path = "../assets/fonts/Agrandir-ThinItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F86C3AFD289F4CDF98BF6477 /* Agrandir-WideBlackItalic.otf */ = {isa = PBXFileReference; name = "Agrandir-WideBlackItalic.otf"; path = "../assets/fonts/Agrandir-WideBlackItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CAF2D2D74D424A3C86E85D47 /* Agrandir-TextBold.otf */ = {isa = PBXFileReference; name = "Agrandir-TextBold.otf"; path = "../assets/fonts/Agrandir-TextBold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FEA28D0D46CC465B928A3728 /* Personal-license-agreement */ = {isa = PBXFileReference; name = "Personal-license-agreement"; path = "../assets/fonts/Personal-license-agreement"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +170,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				FA0A529A2F3FC9B500FD0CBA /* PPAgrandir-GrandHeavy.otf */,
+				FA0A529C2F3FCACD00FD0CBA /* PPAgrandir-GrandHeavy.otf */,
+				FA0A529D2F3FCACE00FD0CBA /* PPAgrandirText-Bold.otf */,
 				FAF0E5F52F368D76004037E9 /* GoogleService-Info.plist */,
 				13B07FAE1A68108700A75B9A /* fastivalle */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -156,10 +200,28 @@
 			isa = PBXGroup;
 			children = (
 				DCBEF0CA45A046E2A8739179 /* Agrandir.ttf */,
-				064F472E0AF04B6389A4FCD7 /* README.md */,
+				DCBCC04666AA4664BA4AEDC7 /* PPAgrandir-NarrowRegular.otf */,
+				F3D6CC48626246BFB1BEB386 /* PPAgrandir-TightRegular.otf */,
+				108B3E439B404529AC94393B /* PPAgrandirText-Bold.otf */,
+				D8B9C7C4301140A189AFCC95 /* PPAgrandir-WideLight.otf */,
+				F8F63FEEAD3E4B0EBFFDA11C /* PPAgrandir-ThinItalic.otf */,
+				1CDC784FEF514634AD50FDBA /* PPAgrandir-GrandLight.otf */,
+				295EDDF540244C2DAF2C2351 /* PPAgrandir-Regular.otf */,
+				5431735A72F64B9EAF78164A /* PPAgrandir-GrandHeavy.otf */,
+				ACDEC402CC434C0C93901B04 /* PPAgrandir-WideBlackItalic.otf */,
+				4921C9453E7B4F6AB1F553EA /* README.md */,
+				A8CC211110184FF0A024584F /* Agrandir-Regular.otf */,
+				0D2E681BC6BE4595BAC3535C /* Agrandir-Narrow.otf */,
+				0384243346624333A3A7692F /* Agrandir-WideLight.otf */,
+				E79403A8E3594B0F9EFE342B /* Agrandir-Tight.otf */,
+				3C6B1F19EA284F9B922BED5F /* Agrandir-GrandHeavy.otf */,
+				96E1FF8C76874851A379D8DD /* Agrandir-GrandLight.otf */,
+				6E5FF44754B84AA7993946A0 /* Agrandir-ThinItalic.otf */,
+				F86C3AFD289F4CDF98BF6477 /* Agrandir-WideBlackItalic.otf */,
+				CAF2D2D74D424A3C86E85D47 /* Agrandir-TextBold.otf */,
+				FEA28D0D46CC465B928A3728 /* Personal-license-agreement */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -267,12 +329,31 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA0A529B2F3FC9B500FD0CBA /* PPAgrandir-GrandHeavy.otf in Resources */,
+				FA0A529E2F3FCACE00FD0CBA /* PPAgrandirText-Bold.otf in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				FAF0E5F62F368D77004037E9 /* GoogleService-Info.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				ACDED72B7CB3819D04CD31A0 /* PrivacyInfo.xcprivacy in Resources */,
 				D316CF831FBF45A29E6AE91F /* Agrandir.ttf in Resources */,
-				684DED6F5565480C84A63805 /* README.md in Resources */,
+				5FF842DA24A244B3BBEF541B /* PPAgrandir-NarrowRegular.otf in Resources */,
+				6FC152F44EA742A3B99ED7CD /* PPAgrandir-TightRegular.otf in Resources */,
+				EF9AA3DD461D4379BC04A3DD /* PPAgrandir-WideLight.otf in Resources */,
+				EFF45CE4677B487EABCC2AF3 /* PPAgrandir-ThinItalic.otf in Resources */,
+				76A8957BE7704BCBBDDD8B5A /* PPAgrandir-GrandLight.otf in Resources */,
+				12294D4AC19247FABD8E89CC /* PPAgrandir-Regular.otf in Resources */,
+				FEDBB1F66A644376B5DD7C03 /* PPAgrandir-WideBlackItalic.otf in Resources */,
+				7DED9CDAC40148E3BDCD4EC8 /* README.md in Resources */,
+				935207161C704D2B9314A6BE /* Agrandir-Regular.otf in Resources */,
+				D2242A8534A642F693DB4932 /* Agrandir-Narrow.otf in Resources */,
+				AEC03B291EC24C7C83744F83 /* Agrandir-WideLight.otf in Resources */,
+				4C979DEF962D4C7EB1E2A5EA /* Agrandir-Tight.otf in Resources */,
+				86370F3464A14707A731CAF2 /* Agrandir-GrandHeavy.otf in Resources */,
+				C94E537D02A145029EF9C5EB /* Agrandir-GrandLight.otf in Resources */,
+				C99A3CE54A4D48949AC773A0 /* Agrandir-ThinItalic.otf in Resources */,
+				57F8BD6174DE417B8248CA82 /* Agrandir-WideBlackItalic.otf in Resources */,
+				37614680354A48788061080B /* Agrandir-TextBold.otf in Resources */,
+				D7D547EA893244C8A5DAD1CB /* Personal-license-agreement in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -648,10 +729,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -734,10 +812,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

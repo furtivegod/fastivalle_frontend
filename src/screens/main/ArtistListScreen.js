@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,37 +8,44 @@ import {
   ImageBackground,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Text, TextInput } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getArtists } from '../../services/artistService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PADDING = 20;
 const GRID_GAP = 6;
 const ARTIST_CARD_WIDTH = (SCREEN_WIDTH - PADDING * 2 - GRID_GAP) / 2;
 
-const ARTIST_LIST = [
-  { id: '1', name: 'Mike Howard', imageColor: '#5C5C5C' },
-  { id: '2', name: 'Annette Smith', imageColor: '#8B7355' },
-  { id: '3', name: 'Adam Brown', imageColor: '#8B6914' },
-  { id: '4', name: 'Mike Howard', imageColor: '#5C5C5C' },
-  { id: '5', name: 'Annette Smith', imageColor: '#8B7355' },
-  { id: '6', name: 'Adam Brown', imageColor: '#8B6914' },
-  { id: '7', name: 'Sarah Miller', imageColor: '#6B5B7A' },
-  { id: '8', name: 'David King', imageColor: '#2D4739' },
-];
-
 const ArtistListScreen = () => {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [artists, setArtists] = useState([]);
 
-  const filteredArtists = useMemo(() => {
-    if (!searchQuery.trim()) return ARTIST_LIST;
-    const q = searchQuery.toLowerCase().trim();
-    return ARTIST_LIST.filter((a) => a.name.toLowerCase().includes(q));
+  const loadArtists = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await getArtists(searchQuery);
+      setArtists(data || []);
+    } catch (err) {
+      setError(err.message || 'Failed to load artists');
+      setArtists([]);
+    } finally {
+      setLoading(false);
+    }
   }, [searchQuery]);
+
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(loadArtists, searchQuery ? 300 : 0);
+    return () => clearTimeout(t);
+  }, [loadArtists, searchQuery]);
 
   return (
     <View style={styles.container}>
@@ -83,9 +90,22 @@ const ArtistListScreen = () => {
           />
         </View>
 
-        {/* 2-column grid (same layout as Partners on Event screen) */}
+        {loading ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator size="large" color="#FFF" />
+            <Text style={styles.loadingText}>Loading artists...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorWrap}>
+            <Ionicons name="alert-circle-outline" size={40} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => { setLoading(true); loadArtists(); }}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
         <View style={styles.artistRow}>
-          {filteredArtists.map((artist) => (
+          {artists.map((artist) => (
             <TouchableOpacity
               key={artist.id}
               style={styles.artistCard}
@@ -93,7 +113,7 @@ const ArtistListScreen = () => {
               onPress={() => navigation.navigate('ArtistDetail', { artist })}
             >
               <Image
-                source={require('../../../assets/images/person.png')}
+                source={artist.profileImage ? { uri: artist.profileImage } : require('../../../assets/images/person.png')}
                 style={styles.artistCardImage}
                 resizeMode="cover"
               />
@@ -103,6 +123,7 @@ const ArtistListScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
+        )}
 
         <View style={styles.bottomPad} />
       </ScrollView>
@@ -194,6 +215,37 @@ const styles = StyleSheet.create({
   },
   bottomPad: {
     height: 24,
+  },
+  loadingWrap: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+  },
+  errorWrap: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

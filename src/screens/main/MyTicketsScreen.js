@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,14 +8,19 @@ import {
   ImageBackground,
   Dimensions,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getMyTickets } from '../../services/ticketService';
+import { useAuth } from '../../context/AuthContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
 const CARD_MARGIN = 20;
 const PADDING = 20;
 const UPCOMING_CARD_SIZE = SCREEN_WIDTH - PADDING * 2;
@@ -23,26 +28,109 @@ const UPCOMING_CARD_SIZE = SCREEN_WIDTH - PADDING * 2;
 const MyTicketsScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(!!user);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+  const [ticketGroups, setTicketGroups] = useState([]);
+  const [recommendedFestival, setRecommendedFestival] = useState(null);
+  const [popularEvents, setPopularEvents] = useState([]);
   const [festivalLiked, setFestivalLiked] = useState(false);
   const [popularLiked, setPopularLiked] = useState({});
 
-  const featuredFestival = {
-    id: '1',
+  const loadTickets = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      setTicketGroups([]);
+      setRecommendedFestival(null);
+      setPopularEvents([]);
+      return;
+    }
+    try {
+      setError(null);
+      const data = await getMyTickets();
+      setTicketGroups(data.ticketGroups || []);
+      setRecommendedFestival(data.recommendedFestival || null);
+      setPopularEvents(data.popularEvents || []);
+      const favMap = {};
+      (data.popularEvents || []).forEach((e) => { if (e.liked) favMap[e.id] = true; });
+      setPopularLiked((prev) => ({ ...favMap, ...prev }));
+    } catch (err) {
+      setError(err.message || 'Failed to load tickets');
+      setTicketGroups([]);
+      setRecommendedFestival(null);
+      setPopularEvents([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadTickets();
+  }, [loadTickets]);
+
+  const togglePopularLiked = (eventId) => {
+    setPopularLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
+  };
+
+  const hasTickets = ticketGroups.length > 0;
+
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Ionicons name="ticket-outline" size={64} color={theme.colors.textSecondary} />
+        <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>Sign in to view your tickets</Text>
+        <Text style={[styles.emptySub, { color: theme.colors.textSecondary }]}>Log in to see your purchased tickets.</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading tickets...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryBtn, { backgroundColor: theme.colors.primary }]}
+          onPress={() => { setLoading(true); loadTickets(); }}
+        >
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const festival = recommendedFestival || {
+    id: '',
     date: 'AUG 15-17',
     attendees: 54,
     title: 'kingdom community...',
     subtitle: 'FESTIVAL',
     stage: '1234 SUNSET BLVD, LOS ANGELES',
-  };
-
-  const popularEvents = [
-    { id: '1', date: 'AUG 15, 12:00AM', title: 'kingdom community mee...', liked: true },
-    { id: '2', date: 'AUG 15, 6:00PM', title: 'evening of hope', liked: true },
-    { id: '3', date: 'AUG 16, 8:00PM', title: 'fasting focus weekend', liked: false },
-  ];
-
-  const togglePopularLiked = (eventId) => {
-    setPopularLiked((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
   return (
@@ -63,7 +151,7 @@ const MyTicketsScreen = () => {
         <TouchableOpacity
           style={styles.headerRight}
           hitSlop={12}
-          onPress={() => navigation.navigate('OrderDetails')}
+          onPress={onRefresh}
         >
           <Ionicons name="refresh" size={24} color={theme.colors.text} />
         </TouchableOpacity>
@@ -73,89 +161,144 @@ const MyTicketsScreen = () => {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
+        }
       >
-        {/* No tickets placeholder card */}
-        <View style={[styles.noTicketsCard, { backgroundColor: theme.colors.surface }]}>
-          <Ionicons
-            name="ticket-outline"
-            size={64}
-            color={theme.colors.textSecondary}
-            style={styles.noTicketsIcon}
-          />
-          <Text style={[styles.noTicketsTitle, { color: theme.colors.text }]}>
-            You don't have any tickets yet
-          </Text>
-          <Text style={[styles.noTicketsSub, { color: theme.colors.textSecondary }]}>
-            Discover upcoming events and grab your first ticket.
-          </Text>
-        </View>
+        {/* No tickets placeholder - only when user has no tickets */}
+        {!hasTickets && (
+          <View style={[styles.noTicketsCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons
+              name="ticket-outline"
+              size={64}
+              color={theme.colors.textSecondary}
+              style={styles.noTicketsIcon}
+            />
+            <Text style={[styles.noTicketsTitle, { color: theme.colors.text }]}>
+              You don't have any tickets yet
+            </Text>
+            <Text style={[styles.noTicketsSub, { color: theme.colors.textSecondary }]}>
+              Discover upcoming events and grab your first ticket.
+            </Text>
+          </View>
+        )}
 
-        {/* Festivals section — same card as Upcoming Events on Home */}
-        <Text style={[styles.sectionTitle, styles.getTicketsTitle, { color: theme.colors.text }]}>Festivals</Text>
-        <TouchableOpacity
-          style={styles.getTicketsCard}
-          activeOpacity={0.9}
-          onPress={() =>
-            navigation.navigate('Event', {
-              event: {
-                ...featuredFestival,
-                date: featuredFestival.date,
-                attendees: featuredFestival.attendees,
-              },
-            })
-          }
-        >
-          <ImageBackground
-            source={require('../../../assets/images/cover.png')}
-            style={[StyleSheet.absoluteFill, styles.getTicketsCardBg]}
-            imageStyle={styles.getTicketsCardImageStyle}
-          >
-            <View style={styles.getTicketsCardOverlay} />
-            <View style={styles.getTicketsCardTop}>
-              <Text style={styles.getTicketsDate}>{featuredFestival.date}</Text>
-              <View style={styles.getTicketsAttendees}>
-                <Ionicons name="people" size={14} color="#FFF" />
-                <Text style={styles.getTicketsAttendeesText}>{featuredFestival.attendees}</Text>
-              </View>
-            </View>
-            <View style={styles.getTicketsCardSpacer} />
-            <Text style={styles.getTicketsCardTitle}>{featuredFestival.title}</Text>
-            <Text style={styles.getTicketsCardSub}>{featuredFestival.subtitle}</Text>
-            <Text style={styles.getTicketsCardStage}>{featuredFestival.stage}</Text>
-            <View style={styles.getTicketsCardActions}>
+        {/* My Tickets - cards for each ticket group */}
+        {hasTickets && (
+          <>
+            <Text style={[styles.sectionTitle, styles.getTicketsTitle, { color: theme.colors.text }]}>My Tickets</Text>
+            {ticketGroups.map((group) => (
               <TouchableOpacity
-                style={styles.getTicketsHeart}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                onPress={() => setFestivalLiked((prev) => !prev)}
+                key={group.orderId}
+                style={styles.getTicketsCard}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('OrderDetails', { orderId: group.orderId, ticketGroup: group })}
               >
-                <Ionicons name={festivalLiked ? 'heart' : 'heart-outline'} size={24} color="#FFF" />
+                <ImageBackground
+                  source={group.event.coverImage ? { uri: group.event.coverImage } : DEFAULT_COVER_IMAGE}
+                  style={[StyleSheet.absoluteFill, styles.getTicketsCardBg]}
+                  imageStyle={styles.getTicketsCardImageStyle}
+                >
+                  <View style={styles.getTicketsCardOverlay} />
+                  <View style={styles.getTicketsCardTop}>
+                    <Text style={styles.getTicketsDate}>{group.event.date}</Text>
+                    <View style={styles.getTicketsAttendees}>
+                      <Text style={styles.getTicketsAttendeesText}>{group.validCount} ticket{group.validCount !== 1 ? 's' : ''}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.getTicketsCardSpacer} />
+                  <Text style={styles.getTicketsCardTitle}>{group.event.title}</Text>
+                  <Text style={styles.getTicketsCardSub}>{group.event.subtitle}</Text>
+                  <Text style={styles.getTicketsCardStage}>{group.event.stage}</Text>
+                  <View style={styles.getTicketsCardActions}>
+                    <TouchableOpacity
+                      style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
+                      onPress={() => navigation.navigate('OrderDetails', { orderId: group.orderId, ticketGroup: group })}
+                    >
+                      <Text style={styles.getTicketBtnText}>View Tickets</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ImageBackground>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
-                onPress={() =>
-                  festivalLiked
-                    ? navigation.navigate('Schedule', { openMySchedule: true })
-                    : navigation.navigate('GetTicket', {
-                        event: {
-                          id: featuredFestival.id,
-                          date: featuredFestival.date,
-                          title: featuredFestival.title,
-                          attendees: featuredFestival.attendees,
-                          subtitle: featuredFestival.subtitle,
-                          stage: featuredFestival.stage,
-                        },
-                      })
-                }
-              >
-                <Text style={styles.getTicketBtnText}>
-                  {festivalLiked ? 'Curate Line Up' : 'Get Ticket'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ImageBackground>
-        </TouchableOpacity>
+            ))}
+          </>
+        )}
 
-        {/* Popular Events — same as Festival Popular Events on Home */}
+        {/* Festivals - recommended */}
+        {festival.id && (
+          <>
+            <Text style={[styles.sectionTitle, styles.getTicketsTitle, { color: theme.colors.text }]}>Festivals</Text>
+            <TouchableOpacity
+              style={styles.getTicketsCard}
+              activeOpacity={0.9}
+              onPress={() =>
+                navigation.navigate('Event', {
+                  event: {
+                    id: festival.id,
+                    date: festival.date,
+                    attendees: festival.attendees,
+                    title: festival.title,
+                    subtitle: festival.subtitle,
+                    stage: festival.stage,
+                    coverImage: festival.coverImage,
+                    coverColor: festival.coverColor,
+                  },
+                })
+              }
+            >
+              <ImageBackground
+                source={festival.coverImage ? { uri: festival.coverImage } : DEFAULT_COVER_IMAGE}
+                style={[StyleSheet.absoluteFill, styles.getTicketsCardBg]}
+                imageStyle={styles.getTicketsCardImageStyle}
+              >
+                <View style={styles.getTicketsCardOverlay} />
+                <View style={styles.getTicketsCardTop}>
+                  <Text style={styles.getTicketsDate}>{festival.date}</Text>
+                  <View style={styles.getTicketsAttendees}>
+                    <Ionicons name="people" size={14} color="#FFF" />
+                    <Text style={styles.getTicketsAttendeesText}>{festival.attendees}</Text>
+                  </View>
+                </View>
+                <View style={styles.getTicketsCardSpacer} />
+                <Text style={styles.getTicketsCardTitle}>{festival.title}</Text>
+                <Text style={styles.getTicketsCardSub}>{festival.subtitle}</Text>
+                <Text style={styles.getTicketsCardStage}>{festival.stage}</Text>
+                <View style={styles.getTicketsCardActions}>
+                  <TouchableOpacity
+                    style={styles.getTicketsHeart}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    onPress={() => setFestivalLiked((prev) => !prev)}
+                  >
+                    <Ionicons name={festivalLiked ? 'heart' : 'heart-outline'} size={24} color="#FFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.getTicketBtn, { backgroundColor: theme.colors.text }]}
+                    onPress={() =>
+                      festivalLiked
+                        ? navigation.navigate('Schedule', { openMySchedule: true })
+                        : navigation.navigate('GetTicket', {
+                            event: {
+                              id: festival.id,
+                              date: festival.date,
+                              title: festival.title,
+                              attendees: festival.attendees,
+                              subtitle: festival.subtitle,
+                              stage: festival.stage,
+                            },
+                          })
+                    }
+                  >
+                    <Text style={styles.getTicketBtnText}>
+                      {festivalLiked ? 'Curate Line Up' : 'Get Ticket'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Popular Events */}
         <Text style={[styles.sectionTitle, styles.section6Title, { color: theme.colors.text }]}>Popular Events</Text>
         {popularEvents.map((event) => {
           const liked = popularLiked[event.id] ?? event.liked;
@@ -166,12 +309,12 @@ const MyTicketsScreen = () => {
               activeOpacity={0.9}
               onPress={() =>
                 navigation.navigate('Event', {
-                  event: { id: event.id, date: event.date, title: event.title },
+                  event: { id: event.id, date: event.date, title: event.title, coverImage: event.coverImage, coverColor: event.coverColor },
                 })
               }
             >
               <Image
-                source={require('../../../assets/images/cover.png')}
+                source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
                 style={styles.nextAppearanceImage}
                 resizeMode="cover"
               />
@@ -443,6 +586,39 @@ const styles = StyleSheet.create({
   },
   bottomPad: {
     height: 24,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  emptySub: {
+    fontSize: 15,
   },
 });
 

@@ -9,10 +9,10 @@
 
 import { Platform } from 'react-native';
 
-const defaultBaseUrl =
-  Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'https://fastivalle-backend.vercel.app';
-  // const defaultBaseUrl =
-  // Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+// const defaultBaseUrl =
+//   Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'https://fastivalle-backend.vercel.app';
+  const defaultBaseUrl =
+  Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
 export const API_BASE_URL =
   process.env.API_BASE_URL ||

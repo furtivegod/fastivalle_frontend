@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,18 +8,19 @@ import {
   ImageBackground,
   Dimensions,
   Platform,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getArtistDetail } from '../../services/artistService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover.png');
 const PADDING = 20;
-
-const DEFAULT_BIO =
-  'Andrew Williamson is a worship leader and songwriter focused on Scripture-centered worship and honest, prayerful moments. He serves his local church, writes songs for congregational singing, and carries a heart for spiritual renewal - helping people slow down, refocus, and draw near to God.';
 
 const SOCIAL_ICONS = [
   { key: 'instagram', icon: 'logo-instagram' },
@@ -28,45 +29,85 @@ const SOCIAL_ICONS = [
   { key: 'spotify', icon: 'logo-spotify' },
 ];
 
-const UPCOMING_EVENTS = [
-  {
-    id: '1',
-    date: 'AUG 15, 10:00AM',
-    attendees: 54,
-    title: 'kingdom community meetup',
-    subtitle: 'WORSHIP',
-    stage: 'MAIN STAGE',
-  },
-  {
-    id: '2',
-    date: 'AUG 16, 2:00PM',
-    attendees: 32,
-    title: 'praise & worship',
-    subtitle: 'WORSHIP',
-    stage: 'MAIN STAGE',
-  },
-];
-
-const NEXT_APPEARANCE = [
-  { id: '1', dateTime: 'AUG 15, 12:00AM', title: 'kingdom community meetup' },
-  { id: '2', dateTime: 'AUG 15, 6:00PM', title: 'evening of hope' },
-  { id: '3', dateTime: 'AUG 16, 8:00PM', title: 'fasting focus weekend' },
-];
+const DEFAULT_BIO =
+  'Andrew Williamson is a worship leader and songwriter focused on Scripture-centered worship and honest, prayerful moments. He serves his local church, writes songs for congregational singing, and carries a heart for spiritual renewal - helping people slow down, refocus, and draw near to God.';
 
 const ArtistDetailScreen = () => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
-  const [likedNext, setLikedNext] = useState({});
-  const artist = route.params?.artist || {
-    id: '1',
+  const paramArtist = route.params?.artist || {
+    id: '',
     name: 'Andrew Williamson',
     imageColor: '#5C5C5C',
   };
 
-  const releaseTitle = 'Heaven in the Room';
-  const releaseYear = '2025';
+  const [likedNext, setLikedNext] = useState({});
+  const [loading, setLoading] = useState(!!paramArtist?.id);
+  const [error, setError] = useState(null);
+  const [artistDetail, setArtistDetail] = useState(null);
+
+  const artist = artistDetail || paramArtist;
+
+  const loadArtistData = useCallback(async () => {
+    const id = paramArtist?.id;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setError(null);
+      const data = await getArtistDetail(id);
+      setArtistDetail(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load artist');
+    } finally {
+      setLoading(false);
+    }
+  }, [paramArtist?.id]);
+
+  useEffect(() => {
+    loadArtistData();
+  }, [loadArtistData]);
+
+  const releaseTitle = artist.albumTitle || 'Heaven in the Room';
+  const releaseYear = artist.albumYear || '2025';
+  const upcomingEvents = artistDetail?.upcomingEvents ?? [];
+  const nextAppearance = artistDetail?.nextAppearance ?? [];
+
+  const getSocialUrl = (key) => {
+    if (!artistDetail) return null;
+    const map = { instagram: artistDetail.instagramUrl, facebook: artistDetail.facebookUrl, youtube: artistDetail.youtubeUrl, spotify: artistDetail.spotifyUrl };
+    return map[key] || null;
+  };
+
+  if (paramArtist?.id && loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#E87D2B" />
+        <Text style={styles.loadingText}>Loading artist...</Text>
+      </View>
+    );
+  }
+
+  if (paramArtist?.id && error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnWrap}>
+          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Ionicons name="alert-circle-outline" size={48} color="#999" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryBtn}
+          onPress={() => { setLoading(true); loadArtistData(); }}
+        >
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -79,7 +120,7 @@ const ArtistDetailScreen = () => {
         <View style={styles.topSection}>
           <View style={styles.topSectionView1}>
             <ImageBackground
-              source={require('../../../assets/images/person.png')}
+              source={artist.profileImage ? { uri: artist.profileImage } : require('../../../assets/images/person.png')}
               style={styles.heroImage}
               imageStyle={styles.heroImageStyle}
             />
@@ -98,7 +139,7 @@ const ArtistDetailScreen = () => {
                 hitSlop={12}
               >
                 <Ionicons name="chevron-back" size={24} color="#FFF" />
-                <Text style={styles.headerBackText}>Youth Revival</Text>
+                <Text style={styles.headerBackText}>{artist.name}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.shareBtn} hitSlop={12}>
                 <Ionicons name="share-outline" size={22} color="#000" />
@@ -107,7 +148,7 @@ const ArtistDetailScreen = () => {
             <View style={styles.bottom}>
               <View style={styles.albumCard}>
                 <Image
-                  source={require('../../../assets/images/artist_photo.png')}
+                  source={artist.albumCover ? { uri: artist.albumCover } : require('../../../assets/images/artist_photo.png')}
                   style={styles.albumArt}
                   resizeMode="cover"
                 />
@@ -125,7 +166,7 @@ const ArtistDetailScreen = () => {
         <View style={styles.contentSection}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Bio</Text>
-            <Text style={styles.bioText} numberOfLines={4}>{DEFAULT_BIO}</Text>
+            <Text style={styles.bioText} numberOfLines={4}>{artist.bio || DEFAULT_BIO}</Text>
             <TouchableOpacity style={styles.readMoreWrap} activeOpacity={0.8}>
               <Text style={styles.readMoreText}>Read More</Text>
               <Ionicons name="chevron-down" size={18} color="#E87D2B" />
@@ -136,6 +177,7 @@ const ArtistDetailScreen = () => {
               <TouchableOpacity
                 key={item.key}
                 style={styles.socialBtn}
+                onPress={() => { const url = getSocialUrl(item.key); if (url) Linking.openURL(url); }}
               >
                 <Ionicons name={item.icon} size={22} color="#FFF" />
               </TouchableOpacity>
@@ -152,7 +194,7 @@ const ArtistDetailScreen = () => {
               <Text style={[styles.seeAllText, { color: theme.colors.textLink }]}>See All</Text>
             </TouchableOpacity>
           </View>
-          {UPCOMING_EVENTS.map((ev) => (
+          {upcomingEvents.map((ev) => (
             <TouchableOpacity
               key={ev.id}
               style={styles.eventCard}
@@ -166,12 +208,14 @@ const ArtistDetailScreen = () => {
                     title: ev.title,
                     subtitle: ev.subtitle,
                     stage: ev.stage,
+                    coverImage: ev.coverImage,
+                    coverColor: ev.coverColor,
                   },
                 })
               }
             >
               <ImageBackground
-                source={require('../../../assets/images/cover.png')}
+                source={ev.coverImage ? { uri: ev.coverImage } : DEFAULT_COVER_IMAGE}
                 style={styles.eventCardBackground}
                 imageStyle={styles.eventCardImageStyle}
               >
@@ -197,7 +241,7 @@ const ArtistDetailScreen = () => {
         {/* Next Appearance */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Next Appearance</Text>
-          {NEXT_APPEARANCE.map((item) => (
+          {nextAppearance.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.nextAppearanceCard}
@@ -208,12 +252,14 @@ const ArtistDetailScreen = () => {
                     id: item.id,
                     date: item.dateTime,
                     title: item.title,
+                    coverImage: item.coverImage,
+                    coverColor: item.coverColor,
                   },
                 })
               }
             >
               <Image
-                source={require('../../../assets/images/cover.png')}
+                source={item.coverImage ? { uri: item.coverImage } : DEFAULT_COVER_IMAGE}
                 style={styles.nextAppearanceImage}
                 resizeMode="cover"
               />
@@ -260,6 +306,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2EFEB',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+    backgroundColor: '#E87D2B',
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backBtnWrap: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
   },
   scroll: {
     flex: 1,

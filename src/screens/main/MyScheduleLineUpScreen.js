@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,30 +7,137 @@ import {
   Image,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getMyLineups } from '../../services/lineupService';
+import { useAuth } from '../../context/AuthContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DEFAULT_COVER_IMAGE = require('../../../assets/images/cover2.png');
 const PADDING = 20;
-
-const LINEUP_SLOTS = [
-  { time: '10:00', items: [{ stage: 'R&B MAINSTAGE', artist: 'tauren wells', added: true }] },
-  { time: '11:00', items: [
-    { stage: 'R&B MAINSTAGE', artist: 'rocky & the queen', added: true },
-    { stage: 'CCM GARDEN', artist: 'heart & soul', added: true },
-  ]},
-  { time: '15:00', items: [{ stage: 'FOLK ORANGE', artist: 'rocky & the queen', added: true }] },
-  { time: '17:00', items: [{ stage: 'FOLK ORANGE', artist: 'rocky & the queen', added: true }] },
-  { time: '21:00', items: [{ stage: 'FOLK ORANGE', artist: 'rocky & the queen', added: true }] },
-];
 
 const MyScheduleLineUpScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const event = route.params?.event || { title: 'fastivalle', date: 'MAR 03, 10AM' };
+  const { user } = useAuth();
+  const paramEvent = route.params?.event;
+
+  const [loading, setLoading] = useState(!!user);
+  const [error, setError] = useState(null);
+  const [lineups, setLineups] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const currentLineup = lineups[selectedIndex] || null;
+  const event = currentLineup?.event || paramEvent || { title: 'fastivalle', date: 'MAR 03, 10AM' };
+  const lineupSlots = currentLineup?.slots ?? [];
+
+  const loadLineups = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      setLineups([]);
+      return;
+    }
+    try {
+      setError(null);
+      const data = await getMyLineups();
+      setLineups(data || []);
+      // Select lineup matching paramEvent if provided
+      if (paramEvent?.id && Array.isArray(data)) {
+        const idx = data.findIndex((l) => l.event?.id === paramEvent.id);
+        setSelectedIndex(idx >= 0 ? idx : 0);
+      } else {
+        setSelectedIndex(0);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load lineup');
+      setLineups([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, paramEvent?.id]);
+
+  useEffect(() => {
+    loadLineups();
+  }, [loadLineups]);
+
+  const goPrev = () => {
+    if (lineups.length > 0) {
+      setSelectedIndex((i) => (i <= 0 ? lineups.length - 1 : i - 1));
+    }
+  };
+  const goNext = () => {
+    if (lineups.length > 0) {
+      setSelectedIndex((i) => (i >= lineups.length - 1 ? 0 : i + 1));
+    }
+  };
+
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Text style={styles.emptyTitle}>Sign in to view your lineup</Text>
+        <Text style={styles.emptyDesc}>Log in to curate and view your schedule.</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <ActivityIndicator size="large" color="#E87D2B" />
+        <Text style={styles.loadingText}>Loading your lineup...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Ionicons name="alert-circle-outline" size={48} color="#999" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={() => { setLoading(true); loadLineups(); }}>
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (lineups.length === 0) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeTop} edges={['top']} />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+            <Text style={styles.headerTitle}>My Schedule</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <Ionicons name="calendar-outline" size={64} color="#CCC" />
+          <Text style={styles.emptyTitle}>No lineup yet</Text>
+          <Text style={styles.emptyDesc}>Curate your lineup from the Schedule screen.</Text>
+          <TouchableOpacity
+            style={styles.browseBtn}
+            onPress={() => navigation.navigate('Schedule')}
+          >
+            <Text style={styles.browseBtnText}>Browse Schedule</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -42,19 +149,22 @@ const MyScheduleLineUpScreen = () => {
           <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
           <Text style={styles.headerTitle}>My Schedule</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {}} style={styles.editLineUpBtn}>
+        <TouchableOpacity
+          style={styles.editLineUpBtn}
+          onPress={() => navigation.navigate('Schedule')}
+        >
           <Text style={styles.editLineUpText}>Edit LineUp</Text>
         </TouchableOpacity>
       </View>
 
       {/* Festival banner */}
       <View style={styles.banner}>
-        <TouchableOpacity style={styles.bannerArrow} hitSlop={8}>
+        <TouchableOpacity style={styles.bannerArrow} hitSlop={8} onPress={goPrev}>
           <Ionicons name="chevron-back" size={22} color="#1a1a1a" />
         </TouchableOpacity>
         <View style={styles.bannerIcon}>
           <Image
-            source={require('../../../assets/images/cover2.png')}
+            source={event.coverImage ? { uri: event.coverImage } : DEFAULT_COVER_IMAGE}
             style={styles.bannerIconImage}
             resizeMode="cover"
           />
@@ -63,18 +173,18 @@ const MyScheduleLineUpScreen = () => {
           <Text style={styles.bannerTitle}>{event.title} Line Up</Text>
           <Text style={styles.bannerDate}>{event.date}</Text>
         </View>
-        <TouchableOpacity style={styles.bannerArrow} hitSlop={8}>
+        <TouchableOpacity style={styles.bannerArrow} hitSlop={8} onPress={goNext}>
           <Ionicons name="chevron-forward" size={22} color="#1a1a1a" />
         </TouchableOpacity>
       </View>
 
-      {/* Schedule list (same structure as modal section 3) */}
+      {/* Schedule list */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
-        {LINEUP_SLOTS.map((slot) => (
+        {lineupSlots.map((slot) => (
           <View key={slot.time} style={styles.slotRow}>
             <Text style={styles.timeMarker}>{slot.time}</Text>
             <View style={styles.slotCards}>
@@ -136,7 +246,7 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 0,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 16,
     marginTop: 16,
@@ -235,6 +345,57 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2EFEB',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+    backgroundColor: '#E87D2B',
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  emptyDesc: {
+    fontSize: 15,
+    color: '#6B6B6B',
+    textAlign: 'center',
+  },
+  browseBtn: {
+    marginTop: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 100,
+    backgroundColor: '#E87D2B',
+  },
+  browseBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

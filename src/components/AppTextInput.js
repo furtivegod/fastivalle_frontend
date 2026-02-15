@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextInput as RNTextInput } from 'react-native';
 
-const FONT_FAMILY = 'Agrandir';
+const FONT_FAMILY = 'PPAgrandir-Regular';
 
 /**
  * TextInput component that automatically applies the app font (Agrandir).

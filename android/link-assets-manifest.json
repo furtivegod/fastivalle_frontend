@@ -2,12 +2,88 @@
   "migIndex": 1,
   "data": [
     {
+      "path": "assets/fonts/PPAgrandir-NarrowRegular.otf",
+      "sha1": "17c7d9a9c4b79e610dad4305d58cc317cec9b9d0"
+    },
+    {
+      "path": "assets/fonts/Agrandir-Regular.otf",
+      "sha1": "7af321cde7e1ed72082ac7e3d581d2851221c7d3"
+    },
+    {
+      "path": "assets/fonts/Agrandir-Narrow.otf",
+      "sha1": "a4a4544db84bd852cdbe3258bb8ddbd26be320c9"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-TightRegular.otf",
+      "sha1": "0f003276a22aaeb93dcb0c4848914d3073f8b428"
+    },
+    {
+      "path": "assets/fonts/PPAgrandirText-Bold.otf",
+      "sha1": "7c8b08e21ae26c67ed3f95043cbc9e6ec649dd9c"
+    },
+    {
+      "path": "assets/fonts/Agrandir-WideLight.otf",
+      "sha1": "5d10905cedbbd1813ea6ff2a092e2f8ca8c740f7"
+    },
+    {
       "path": "assets/fonts/Agrandir.ttf",
       "sha1": "bc0f09edd2a618b61ffffa6c767d449c0ce84ba7"
     },
     {
       "path": "assets/fonts/README.md",
-      "sha1": "b479e0154ebd5f7d6154d6b1efcf95e81207114d"
+      "sha1": "8527f806203017dddb35652a383792b005b72571"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-WideLight.otf",
+      "sha1": "f171c6f6fa22fe5ef55bc2dbb3e486aec3d8411c"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-ThinItalic.otf",
+      "sha1": "8be786e84d79f0d69cd9cf9ac3faf7efd30ac5c6"
+    },
+    {
+      "path": "assets/fonts/Agrandir-Tight.otf",
+      "sha1": "dfc7b261c473f8c56abb68970c1799cdcbb65ff9"
+    },
+    {
+      "path": "assets/fonts/Agrandir-GrandHeavy.otf",
+      "sha1": "501ddabb199ae40fea25d8f3fd241c3ad884700e"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-GrandLight.otf",
+      "sha1": "2b2b45eddd186ec37824de37a3a45448e88abeec"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-Regular.otf",
+      "sha1": "60480767ead42d901d66707ef4ea815f86fb4709"
+    },
+    {
+      "path": "assets/fonts/Agrandir-GrandLight.otf",
+      "sha1": "c8d5cd5512f4c8cc17f227f9fda58354379cf6cb"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-GrandHeavy.otf",
+      "sha1": "a07958211c06b9b81ca03f23e0d3d159ccef9581"
+    },
+    {
+      "path": "assets/fonts/Personal-license-agreement",
+      "sha1": "fbad1ce59f25a9cfece58a8cc881a61c636ede08"
+    },
+    {
+      "path": "assets/fonts/Agrandir-ThinItalic.otf",
+      "sha1": "1f48200fea659b36fedc8839263ec580a6596f90"
+    },
+    {
+      "path": "assets/fonts/Agrandir-WideBlackItalic.otf",
+      "sha1": "591080b4613e60bf9700d9c8dd085ddafd212bae"
+    },
+    {
+      "path": "assets/fonts/Agrandir-TextBold.otf",
+      "sha1": "fffdc9a8870a38382736480f3e15de01d47cb92f"
+    },
+    {
+      "path": "assets/fonts/PPAgrandir-WideBlackItalic.otf",
+      "sha1": "7b0c97eb86e85fd2ae1a9cc565016ba3e46f30a1"
     }
   ]
 }
