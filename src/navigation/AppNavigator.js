@@ -9,6 +9,10 @@ import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import MainTabsNavigator from './MainTabsNavigator';
 import GetTicketScreen from '../screens/main/GetTicketScreen';
 import PurchaseSuccessScreen from '../screens/main/PurchaseSuccessScreen';
+import TicketScreen from '../screens/main/TicketScreen';
+import ShareTicketScreen from '../screens/main/ShareTicketScreen';
+import CancelOrderScreen from '../screens/main/CancelOrderScreen';
+import ConfirmCancelScreen from '../screens/main/ConfirmCancelScreen';
 import MyTicketsScreen from '../screens/main/MyTicketsScreen';
 import OrderDetailsScreen from '../screens/main/OrderDetailsScreen';
 import EventScreen from '../screens/main/EventScreen';
@@ -49,6 +53,10 @@ const AppNavigator = () => {
         <Stack.Screen name="MyTickets" component={MyTicketsScreen} />
         <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
         <Stack.Screen name="PurchaseSuccess" component={PurchaseSuccessScreen} />
+        <Stack.Screen name="Ticket" component={TicketScreen} />
+        <Stack.Screen name="ShareTicket" component={ShareTicketScreen} />
+        <Stack.Screen name="CancelOrder" component={CancelOrderScreen} />
+        <Stack.Screen name="ConfirmCancel" component={ConfirmCancelScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Notifications" component={NotificationScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />

@@ -53,6 +53,18 @@ const PurchaseSuccessScreen = () => {
   const handleCurateLineup = () => {
     navigation.navigate('MainTabs');
   };
+  const handleViewTicket = () => {
+    navigation.navigate('Ticket', {
+      order,
+      orderId: order?.id ?? orderIdFromParams,
+      orderNumber,
+      event,
+      category,
+      ticketType,
+      date: event?.date ?? 'Aug 15-20',
+      time: '10:00-20:00',
+    });
+  };
 
   const bannerSource = event?.coverImage
     ? { uri: typeof event.coverImage === 'string' ? event.coverImage : event.coverImage?.url }
@@ -148,6 +160,14 @@ const PurchaseSuccessScreen = () => {
               >
                 <Text style={styles.addToWalletText}>Add To Wallet</Text>
                 <Ionicons name="wallet-outline" size={20} color="#FFF" style={styles.addToWalletIcon} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addToWalletButton}
+                activeOpacity={0.8}
+                onPress={handleViewTicket}
+              >
+                <Text style={[styles.viewTicketText, { color: theme.colors.textLink }]}>View Ticket</Text>
+                <Ionicons name="ticket-outline" size={20} color={theme.colors.textLink} style={styles.viewTicketIcon} />
               </TouchableOpacity>
             </View>
           </View>
@@ -347,6 +367,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   addToWalletIcon: {
+    marginLeft: 8,
+  },
+  viewTicketText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  viewTicketIcon: {
     marginLeft: 8,
   },
   curatePrompt: {

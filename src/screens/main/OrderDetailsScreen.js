@@ -5,8 +5,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
-import { Text } from '../../components';
+import { Text, QRCode } from '../../components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -53,8 +55,13 @@ const OrderDetailsScreen = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('Tickets');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedOrderForQR, setSelectedOrderForQR] = useState(null);
 
   const orders = activeTab === 'Tickets' ? sampleOrders : [];
+
+  /** Data encoded in the ticket QR (order id + order number for validation) */
+  const getTicketQRValue = (order) =>
+    [order.id, order.orderNumber].filter(Boolean).join('|');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -177,7 +184,11 @@ const OrderDetailsScreen = () => {
                   <DetailRow label="Order number" value={order.orderNumber} theme={theme} />
                   <DetailRow label="Total price" value={order.total} theme={theme} />
                 </View>
-                <TouchableOpacity style={styles.viewTicketRow} activeOpacity={0.8}>
+                <TouchableOpacity
+                  style={styles.viewTicketRow}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedOrderForQR(order)}
+                >
                   <Text style={[styles.viewTicketText, { color: theme.colors.textLink }]}>
                     View Ticket
                   </Text>
@@ -197,6 +208,53 @@ const OrderDetailsScreen = () => {
 
         <View style={styles.bottomPad} />
       </ScrollView>
+
+      {/* Ticket QR code modal */}
+      <Modal
+        visible={!!selectedOrderForQR}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedOrderForQR(null)}
+      >
+        <Pressable
+          style={styles.qrModalOverlay}
+          onPress={() => setSelectedOrderForQR(null)}
+        >
+          <Pressable
+            style={[styles.qrModalCard, { backgroundColor: theme.colors.surface }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={[styles.qrModalTitle, { color: theme.colors.text }]}>
+              Your Ticket
+            </Text>
+            {selectedOrderForQR && (
+              <>
+                <QRCode
+                  value={getTicketQRValue(selectedOrderForQR)}
+                  size={220}
+                  color={theme.colors.text}
+                  backgroundColor={theme.colors.surface}
+                />
+                <Text
+                  style={[styles.qrModalOrderNumber, { color: theme.colors.textSecondary }]}
+                >
+                  Order: {selectedOrderForQR.orderNumber}
+                </Text>
+                <Text style={[styles.qrModalHint, { color: theme.colors.textMuted }]}>
+                  Show this QR at the entrance
+                </Text>
+              </>
+            )}
+            <TouchableOpacity
+              style={[styles.qrModalCloseBtn, { backgroundColor: theme.colors.text }]}
+              onPress={() => setSelectedOrderForQR(null)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.qrModalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -386,6 +444,44 @@ const styles = StyleSheet.create({
   },
   bottomPad: {
     height: 24,
+  },
+  qrModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  qrModalCard: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+  },
+  qrModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 20,
+  },
+  qrModalOrderNumber: {
+    fontSize: 14,
+    marginTop: 12,
+  },
+  qrModalHint: {
+    fontSize: 13,
+    marginTop: 6,
+  },
+  qrModalCloseBtn: {
+    marginTop: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 100,
+  },
+  qrModalCloseText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
